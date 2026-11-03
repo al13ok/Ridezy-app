@@ -4,7 +4,7 @@ const { body, query } = require('express-validator');
 const rideController = require('../controllers/ride.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
 
-router.get('/chat-details/:id', rideController.chatDetails)
+router.get('/chat-details/:id', authMiddleware.authAny, rideController.chatDetails)
 
 router.post('/create',
     authMiddleware.authUser,
@@ -29,6 +29,7 @@ router.post('/confirm',
 
 
 router.get('/cancel',
+    authMiddleware.authUser,
     query('rideId').isMongoId().withMessage('Invalid ride id'),
     rideController.cancelRide
 )

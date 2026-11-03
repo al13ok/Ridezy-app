@@ -16,7 +16,16 @@ module.exports.chatDetails = async(req, res) => {
             .populate("captain", "socketId fullname phone");
 
         if (!ride) {
-            return res.status(400).json({ message: "Ride not found" });
+            return res.status(404).json({ message: "Ride not found" });
+        }
+
+        // Server-side authorization: only the rider or the captain of THIS ride may read
+        // its chat (it contains names and phone numbers). Earlier this check was done only
+        // in the React code, after the data was already sent to the browser.
+        const isRideUser = ride.user && String(ride.user._id) === String(req.authId);
+        const isRideCaptain = ride.captain && String(ride.captain._id) === String(req.authId);
+        if (!isRideUser && !isRideCaptain) {
+            return res.status(403).json({ message: "You are not part of this ride" });
         }
 
         const response = {
@@ -251,9 +260,14 @@ module.exports.confirmRide = async(req, res) => {
         // TODO: Remove ride from other captains
         // Implement logic here, maybe emit an event or update captain listings
 
-        return res.status(200).json(ride);
+        // The rider gets the OTP (above, via socket) to share in person. The captain
+        // must NOT receive it in this response, otherwise the OTP check is pointless.
+        const rideForCaptain = ride.toObject();
+        delete rideForCaptain.otp;
+        return res.status(200).json(rideForCaptain);
     } catch (err) {
-        return res.status(500).json({ message: err.message });
+        // 409 Conflict when another captain won the race; 500 for unexpected errors
+        return res.status(err.statusCode || 500).json({ message: err.message });
     }
 };
 
@@ -283,8 +297,6 @@ module.exports.startRide = async(req, res) => {
     }
 };
 module.exports.endRide = async(req, res) => {
-
-    console.log("END RIDE BODY", req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -302,10 +314,7 @@ module.exports.endRide = async(req, res) => {
 
         return res.status(200).json(ride);
     } catch (err) {
-        console.log("========== END RIDE ERROR ==========");
-        console.log(err);
-        console.log("===================================");
-
+        console.error("End ride error:", err.message);
         return res.status(500).json({
             message: err.message,
         });
@@ -321,9 +330,16 @@ module.exports.cancelRide = async(req, res) => {
     const { rideId } = req.query;
 
     try {
-        const ride = await rideModel.findOneAndUpdate({ _id: rideId }, {
-            status: "cancelled",
-        }, { new: true });
+        // Only the rider who booked the ride can cancel it, and only before it starts.
+        const ride = await rideModel.findOneAndUpdate(
+            { _id: rideId, user: req.user._id, status: { $in: ["pending", "accepted"] } },
+            { status: "cancelled" },
+            { new: true }
+        );
+
+        if (!ride) {
+            return res.status(404).json({ message: "Ride not found or cannot be cancelled" });
+        }
 
         const pickupCoordinates = await mapService.getAddressCoordinate(ride.pickup);
         const captainsInRadius = await mapService.getCaptainsInTheRadius(

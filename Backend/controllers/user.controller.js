@@ -4,6 +4,7 @@ const userService = require("../services/user.service");
 const { validationResult } = require("express-validator");
 const blacklistTokenModel = require("../models/blacklistToken.model");
 const jwt = require("jsonwebtoken");
+const { verifyResetToken, consumeResetToken } = require("../utils/resetToken");
 
 module.exports.registerUser = asyncHandler(async (req, res) => {
   const errors = validationResult(req);
@@ -45,8 +46,15 @@ module.exports.verifyEmail = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Invalid verification link", error: "Token is required" });
   }
 
-  let decodedTokenData = jwt.verify(token, process.env.JWT_SECRET);
-  if (!decodedTokenData || decodedTokenData.purpose !== "email-verification") {
+  // jwt.verify THROWS on expired/invalid tokens – catch it and return a clean 400
+  // instead of an unhandled 500.
+  let decodedTokenData;
+  try {
+    decodedTokenData = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return res.status(400).json({ message: "You're trying to use an invalid or expired verification link", error: "Invalid token" });
+  }
+  if (!decodedTokenData || decodedTokenData.purpose !== "email-verification" || decodedTokenData.userType !== "user") {
     return res.status(400).json({ message: "You're trying to use an invalid or expired verification link", error: "Invalid token" });
   }
 
@@ -78,13 +86,14 @@ module.exports.loginUser = asyncHandler(async (req, res) => {
 
   const user = await userModel.findOne({ email }).select("+password");
   if (!user) {
-    res.status(404).json({ message: "Invalid email or password" });
+    // `return` is required – otherwise execution continues and user.comparePassword crashes on null
+    return res.status(401).json({ message: "Invalid email or password" });
   }
 
   const isMatch = await user.comparePassword(password);
 
   if (!isMatch) {
-    return res.status(404).json({ message: "Invalid email or password" });
+    return res.status(401).json({ message: "Invalid email or password" });
   }
 
   const token = user.generateAuthToken();
@@ -150,23 +159,19 @@ module.exports.resetPassword = asyncHandler(async (req, res) => {
   }
 
   const { token, password } = req.body;
-  let payload;
 
-  try {
-    payload = jwt.verify(token, process.env.JWT_SECRET);
-  } catch (err) {
-    if (err.name === "TokenExpiredError") {
+  const { payload, expired } = await verifyResetToken(token, "user");
+  if (!payload) {
+    if (expired) {
       return res.status(400).json({
         message:
           "This password reset link has expired or is no longer valid. Please request a new one to continue",
       });
-    } else {
-      return res.status(400).json({
-        message:
-          "The password reset link is invalid or has already been used. Please request a new one to proceed",
-        error: err,
-      });
     }
+    return res.status(400).json({
+      message:
+        "The password reset link is invalid or has already been used. Please request a new one to proceed",
+    });
   }
 
   const user = await userModel.findById(payload.id);
@@ -177,6 +182,7 @@ module.exports.resetPassword = asyncHandler(async (req, res) => {
 
   user.password = await userModel.hashPassword(password);
   await user.save();
+  await consumeResetToken(token); // single-use link
 
   res.status(200).json({
     message:

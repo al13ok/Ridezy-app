@@ -29,7 +29,8 @@ function ChatScreen() {
   const getUserDetails = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/ride/chat-details/${rideId}`
+        `${import.meta.env.VITE_SERVER_URL}/ride/chat-details/${rideId}`,
+        { headers: { token: localStorage.getItem("token") } }
       );
 
       //  Protecting unauthorised users to read the chats
@@ -40,7 +41,7 @@ function ChatScreen() {
       }
       setMessages(response.data.messages);
 
-      socket.emit("join-room", rideId);
+      socket.emit("join-room", { rideId, token: localStorage.getItem("token") });
       if (userType == "user") {
         setUserData(response.data.captain);
       }
@@ -64,7 +65,8 @@ function ChatScreen() {
     }
 
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    socket.emit("message", { rideId: rideId, msg: message, userType: userType, time });
+    // Sender role is taken from the verified token on the server, not from this payload.
+    socket.emit("message", { rideId: rideId, msg: message, time });
     setMessages((prev) => [...prev, { msg: message, by: userType, time }]);
 
     setMessage("");

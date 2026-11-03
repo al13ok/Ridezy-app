@@ -1,7 +1,6 @@
 require("dotenv").config();
 
-console.log(process.cwd());
-console.log(process.env);
+// Never log process.env – it contains secrets (JWT secret, DB URL, mail password).
 console.log("ENV =", process.env.ENVIRONMENT);
 const socket = require("./socket");
 const express = require("express");
@@ -14,6 +13,7 @@ socket.initializeSocket(server);
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
+const { getAllowedOrigins } = require("./config/cors");
 
 const userRoutes = require("./routes/user.routes");
 const captainRoutes = require("./routes/captain.routes");
@@ -34,7 +34,11 @@ if (process.env.ENVIRONMENT == "production") {
 } else {
     app.use(morgan("dev"));
 }
-app.use(cors());
+// Render/Vercel sit behind a proxy; trust it so req.ip is the real client IP (used by rate limiter).
+if (process.env.ENVIRONMENT == "production") {
+    app.set("trust proxy", 1);
+}
+app.use(cors({ origin: getAllowedOrigins() }));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

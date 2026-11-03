@@ -3,6 +3,7 @@ const router = express.Router();
 const captainController = require("../controllers/captain.controller");
 const { body } = require("express-validator");
 const { authCaptain } = require("../middlewares/auth.middleware");
+const { loginLimiter } = require("../middlewares/rateLimit.middleware");
 
 router.post("/register",
     body("email").isEmail().withMessage("Invalid Email"),
@@ -14,7 +15,8 @@ router.post("/register",
 
 router.post("/verify-email", captainController.verifyEmail);
 
-router.post("/login", 
+router.post("/login",
+    loginLimiter,
     body("email").isEmail().withMessage("Invalid Email"),
     captainController.loginCaptain
 );

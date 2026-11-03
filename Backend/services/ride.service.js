@@ -74,7 +74,8 @@ module.exports.createRide = async({
     try {
         const { fare, distanceTime } = await getFare(pickup, destination);
 
-        const ride = rideModel.create({
+        // `await` needed: without it a failed insert escapes this try/catch
+        const ride = await rideModel.create({
             user,
             pickup,
             destination,
@@ -97,37 +98,33 @@ module.exports.confirmRide = async({ rideId, captain }) => {
         throw new Error("Ride id is required");
     }
 
-    try {
-        await rideModel.findOneAndUpdate({
-            _id: rideId,
-        }, {
-            status: "accepted",
-            captain: captain._id,
-        });
+    // ATOMIC check-and-update: the filter includes status "pending", so MongoDB
+    // only updates the ride if nobody has accepted it yet. If two captains click
+    // "Accept" at the same moment, exactly one update matches; the other gets null.
+    // (Previously: read status -> then update = race condition / double booking.)
+    const ride = await rideModel
+        .findOneAndUpdate(
+            { _id: rideId, status: "pending" },
+            { status: "accepted", captain: captain._id },
+            { new: true }
+        )
+        .populate("user")
+        .populate("captain")
+        .select("+otp");
 
-        const captainData = await captainModel.findOne({ _id: captain._id });
-
-        captainData.rides.push(rideId);
-
-        await captainData.save();
-
-        const ride = await rideModel
-            .findOne({
-                _id: rideId,
-            })
-            .populate("user")
-            .populate("captain")
-            .select("+otp");
-
-        if (!ride) {
-            throw new Error("Ride not found");
-        }
-
-        return ride;
-    } catch (error) {
-        console.log(error)
-        throw new Error("Error occured while confirming ride.");
+    if (!ride) {
+        const err = new Error("This ride is no longer available. It was accepted, cancelled or completed.");
+        err.statusCode = 409; // Conflict
+        throw err;
     }
+
+    // $addToSet is atomic and never adds the same ride twice.
+    await captainModel.updateOne(
+        { _id: captain._id },
+        { $addToSet: { rides: ride._id } }
+    );
+
+    return ride;
 };
 
 module.exports.startRide = async({ rideId, otp, captain }) => {
@@ -147,6 +144,11 @@ module.exports.startRide = async({ rideId, otp, captain }) => {
         throw new Error("Ride not found");
     }
 
+    // Authorization: only the captain assigned to this ride may start it.
+    if (captain && ride.captain && String(ride.captain._id) !== String(captain._id)) {
+        throw new Error("You are not assigned to this ride");
+    }
+
     if (ride.status !== "accepted") {
         throw new Error("Ride not accepted");
     }
@@ -155,13 +157,21 @@ module.exports.startRide = async({ rideId, otp, captain }) => {
         throw new Error("Invalid OTP");
     }
 
-    await rideModel.findOneAndUpdate({
-        _id: rideId,
-    }, {
-        status: "ongoing",
-    });
+    // Same atomic pattern: only move accepted -> ongoing.
+    const startedRide = await rideModel
+        .findOneAndUpdate(
+            { _id: rideId, status: "accepted" },
+            { status: "ongoing" },
+            { new: true }
+        )
+        .populate("user")
+        .populate("captain");
 
-    return ride;
+    if (!startedRide) {
+        throw new Error("Ride state changed, please refresh");
+    }
+
+    return startedRide;
 };
 
 module.exports.endRide = async({ rideId, captain }) => {
@@ -180,7 +190,6 @@ module.exports.endRide = async({ rideId, captain }) => {
     if (!ride) {
         throw new Error("Ride not found");
     }
-    console.log("CURRENT RIDE STATUS:", ride.status);
 
     if (ride.status !== "ongoing") {
         throw new Error("Ride not ongoing");

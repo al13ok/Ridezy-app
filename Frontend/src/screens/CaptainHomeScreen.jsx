@@ -88,6 +88,8 @@ function CaptainHomeScreen() {
         );
         setLoading(false);
         setShowBtn("otp");
+        // Now that we are the assigned captain, we're allowed into the ride's chat room.
+        socket.emit("join-room", { rideId: newRide._id, token });
         setMapLocation(
           `https://www.google.com/maps?q=${riderLocation.ltd},${riderLocation.lng} to ${newRide.pickup}&output=embed`
         );
@@ -174,8 +176,8 @@ function CaptainHomeScreen() {
           setMapLocation(
             `https://www.google.com/maps?q=${position.coords.latitude},${position.coords.longitude}&output=embed`
           );
+          // Captain identity comes from the socket's verified "join", not from the payload.
           socket.emit("update-location-captain", {
-            userId: captain._id,
             location: {
               ltd: position.coords.latitude,
               lng: position.coords.longitude,
@@ -214,10 +216,7 @@ function CaptainHomeScreen() {
 
   useEffect(() => {
     if (captain._id) {
-      socket.emit("join", {
-        userId: captain._id,
-        userType: "captain",
-      });
+      socket.emit("join", { token });
 
       // const locationInterval = setInterval(updateLocation, 10000);
       updateLocation(); // IMP: Call this function to update location
@@ -242,7 +241,12 @@ function CaptainHomeScreen() {
   }, [messages]);
 
   useEffect(() => {
-    socket.emit("join-room", newRide._id);
+    // Server only lets the ride's assigned captain into the room, so this succeeds
+    // for an accepted ride (e.g. after a page refresh). Right after accepting,
+    // acceptRide() joins the room again.
+    if (newRide._id) {
+      socket.emit("join-room", { rideId: newRide._id, token });
+    }
 
     socket.on("receiveMessage", async (msg) => {
       // Console.log("Received message: ", msg);

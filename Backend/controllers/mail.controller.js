@@ -92,8 +92,10 @@ module.exports.forgotPassword = asyncHandler(async (req, res) => {
   }
   if (!user) return res.status(404).json({ message: "User not found. Please check your credentials and try again" });
 
+  // `purpose` + correct `userType` so this token can only be used for a password
+  // reset of THIS account type (see utils/resetToken.js).
   const token = jwt.sign(
-    { id: user._id, type: "user" },
+    { id: user._id, userType, purpose: "password-reset" },
     process.env.JWT_SECRET,
     { expiresIn: "15m" }
   );
@@ -113,25 +115,5 @@ module.exports.forgotPassword = asyncHandler(async (req, res) => {
 
   res.status(200).json({ message: "Reset password email sent successfully" });
 });
-
-// Reset Password
-module.exports.resetPassword = asyncHandler(async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json(errors.array());
-
-  const { token, password } = req.body;
-  let payload;
-  try {
-    payload = jwt.verify(token, process.env.JWT_SECRET);
-  } catch (err) {
-    return res.status(400).json({ message: "Invalid or expired token" });
-  }
-
-  const user = await userModel.findById(payload.id);
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  user.password = await userModel.hashPassword(password);
-  await user.save();
-
-  res.status(200).json({ message: "Password reset successfully" });
-});
+// (Removed an unused duplicate resetPassword handler – the real ones live in
+// user.controller.js and captain.controller.js.)

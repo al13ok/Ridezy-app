@@ -179,11 +179,8 @@ setLocationSuggestion(filteredLocations);
       await axios.get(
         `${import.meta.env.VITE_SERVER_URL}/ride/cancel?rideId=${rideDetails._id || rideDetails.confirmedRideData._id
         }`,
-        {
-          pickup: pickupLocation,
-          destination: destinationLocation,
-          vehicleType: selectedVehicle,
-        },
+        // axios.get(url, config) takes only 2 args – a GET has no body. Earlier a body
+        // object was passed 2nd, so these headers (3rd arg) were silently ignored.
         {
           headers: {
             token: token,
@@ -315,10 +312,8 @@ setLocationSuggestion(filteredLocations);
   // Socket Events
   useEffect(() => {
     if (user._id) {
-      socket.emit("join", {
-        userId: user._id,
-        userType: "user",
-      });
+      // Server identifies us from the verified JWT, not from a userId we claim.
+      socket.emit("join", { token });
     }
 
     socket.on("ride-confirmed", (data) => {
@@ -427,7 +422,7 @@ setLocationSuggestion(filteredLocations);
 
   useEffect(() => {
     if (confirmedRideData?._id) {
-    socket.emit("join-room", confirmedRideData._id);
+    socket.emit("join-room", { rideId: confirmedRideData._id, token });
   }
 
     socket.on("receiveMessage", (msg) => {

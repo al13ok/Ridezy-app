@@ -50,6 +50,9 @@ function ResetPassword() {
             );
             showAlert('Password reset successfully!', response.data.message, 'success');
             Console.log(response);
+            // The used token is now invalid on the server – log in again with the new password.
+            localStorage.removeItem("token");
+            localStorage.removeItem("userData");
             setTimeout(() => {
                 navigate('/')
             }, 5000)

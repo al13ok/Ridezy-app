@@ -4,6 +4,7 @@ const captainService = require("../services/captain.service");
 const { validationResult } = require("express-validator");
 const blacklistTokenModel = require("../models/blacklistToken.model");
 const jwt = require("jsonwebtoken");
+const { verifyResetToken, consumeResetToken } = require("../utils/resetToken");
 
 module.exports.registerCaptain = asyncHandler(async (req, res) => {
   const errors = validationResult(req);
@@ -49,8 +50,13 @@ module.exports.verifyEmail = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "Invalid verification link", error: "Token is required" });
     }
   
-    let decodedTokenData = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decodedTokenData || decodedTokenData.purpose !== "email-verification") {
+    let decodedTokenData;
+    try {
+      decodedTokenData = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(400).json({ message: "You're trying to use an invalid or expired verification link", error: "Invalid token" });
+    }
+    if (!decodedTokenData || decodedTokenData.purpose !== "email-verification" || decodedTokenData.userType !== "captain") {
       return res.status(400).json({ message: "You're trying to use an invalid or expired verification link", error: "Invalid token" });
     }
   
@@ -82,13 +88,13 @@ module.exports.loginCaptain = asyncHandler(async (req, res) => {
 
   const captain = await captainModel.findOne({ email }).select("+password");
   if (!captain) {
-    res.status(404).json({ message: "Invalid email or password" });
+    return res.status(401).json({ message: "Invalid email or password" });
   }
 
   const isMatch = await captain.comparePassword(password);
 
   if (!isMatch) {
-    return res.status(404).json({ message: "Invalid email or password" });
+    return res.status(401).json({ message: "Invalid email or password" });
   }
 
   const token = captain.generateAuthToken();
@@ -107,11 +113,29 @@ module.exports.updateCaptainProfile = asyncHandler(async (req, res) => {
     return res.status(400).json(errors.array());
   }
 
-  const { captainData } = req.body;
+  const { captainData = {} } = req.body;
+
+  // Whitelist editable fields. Passing req.body straight into the update
+  // (mass assignment) let a captain set email, password (unhashed!),
+  // emailVerified, status or rides themselves.
+  const update = {};
+  if (captainData.fullname) {
+    update["fullname.firstname"] = captainData.fullname.firstname;
+    update["fullname.lastname"] = captainData.fullname.lastname;
+  }
+  if (captainData.phone !== undefined) update.phone = captainData.phone;
+  if (captainData.vehicle) {
+    for (const field of ["color", "number", "capacity", "type"]) {
+      if (captainData.vehicle[field] !== undefined) {
+        update[`vehicle.${field}`] = captainData.vehicle[field];
+      }
+    }
+  }
+
   const updatedCaptainData = await captainModel.findOneAndUpdate(
-    { email: req.captain.email },
-    captainData,
-    { new: true }
+    { _id: req.captain._id },
+    { $set: update },
+    { new: true, runValidators: true }
   );
 
   res.status(200).json({
@@ -136,16 +160,13 @@ module.exports.resetPassword = asyncHandler(async (req, res) => {
   }
 
   const { token, password } = req.body;
-  let payload;
 
-  try {
-    payload = jwt.verify(token, process.env.JWT_SECRET);
-  } catch (err) {
-    if (err.name === "TokenExpiredError") {
+  const { payload, expired } = await verifyResetToken(token, "captain");
+  if (!payload) {
+    if (expired) {
       return res.status(400).json({ message: "This password reset link has expired or is no longer valid. Please request a new one to continue" });
-    } else {
-      return res.status(400).json({ message: "The password reset link is invalid or has already been used. Please request a new one to proceed", error: err });
     }
+    return res.status(400).json({ message: "The password reset link is invalid or has already been used. Please request a new one to proceed" });
   }
 
   const captain = await captainModel.findById(payload.id);
@@ -153,6 +174,7 @@ module.exports.resetPassword = asyncHandler(async (req, res) => {
 
   captain.password = await captainModel.hashPassword(password);
   await captain.save();
+  await consumeResetToken(token); // single-use link
 
   res.status(200).json({ message: "Your password has been successfully reset. You can now log in with your new credentials" });
 });
