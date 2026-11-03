@@ -28,7 +28,7 @@ const VerifyEmail = () => {
       }
     } catch (error) {
       Console.error("Error verifying email:", error);
-      if (error.response.data.message === "Token Expired") {
+      if (error.response?.data?.message === "Token Expired") {
         setResponse("Your verification link is expired. Please request a new verification link.");
       } else if (error.response && error.response.data && error.response.data.message) {
         setResponse(error.response.data.message || "An error occurred while verifying your email.");

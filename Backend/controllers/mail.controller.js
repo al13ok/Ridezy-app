@@ -3,6 +3,7 @@ const { validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
 
 const { sendMail } = require("../services/mail.service");
+const { isDemoAccount, DEMO_LOCKED_MESSAGE } = require("../utils/demo");
 let { fillTemplate } = require("../templates/mail.template");
 
 const captainModel = require("../models/captain.model");
@@ -91,6 +92,7 @@ module.exports.forgotPassword = asyncHandler(async (req, res) => {
     user = await captainModel.findOne({ email });
   }
   if (!user) return res.status(404).json({ message: "User not found. Please check your credentials and try again" });
+  if (isDemoAccount(user.email)) return res.status(403).json({ message: DEMO_LOCKED_MESSAGE });
 
   // `purpose` + correct `userType` so this token can only be used for a password
   // reset of THIS account type (see utils/resetToken.js).

@@ -2,6 +2,7 @@ import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Console from "../utils/console";
+import { getErrorMessage } from "../utils/errorMessage";
 import { ArrowLeft } from "lucide-react";
 import Heading from "./Heading";
 import Button from "./Button";
@@ -33,7 +34,7 @@ function VerifyEmail({ user, role }) {
                 startCooldown();
             }
         } catch (error) {
-            showAlert('Some error occured', error.response.data.message, 'failure');
+            showAlert('Some error occured', getErrorMessage(error), 'failure');
             Console.error("Error sending verification email:", error);
         } finally {
             setLoading(false);

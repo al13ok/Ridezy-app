@@ -3,6 +3,7 @@ import { Button, Input } from '../components';
 import { useState } from 'react';
 import { useForm } from "react-hook-form";
 import Console from '../utils/console';
+import { getErrorMessage } from "../utils/errorMessage";
 import axios from 'axios';
 import { useAlert } from '../hooks/useAlert';
 import { Alert } from '../components';
@@ -57,7 +58,7 @@ function ResetPassword() {
                 navigate('/')
             }, 5000)
         } catch (error) {
-            showAlert('Some error occured!', error.response.data.message, 'failure');
+            showAlert('Some error occured!', getErrorMessage(error), 'failure');
             setTimeout(() => {
                 navigate('/' + userType + '/forgot-password')
             }, 5000);

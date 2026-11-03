@@ -6,6 +6,7 @@ import axios from "axios";
 import { useUser } from "../contexts/UserContext";
 import { ArrowLeft } from "lucide-react";
 import Console from "../utils/console";
+import { getErrorMessage } from "../utils/errorMessage";
 import { useAlert } from "../hooks/useAlert";
 import { Alert } from "../components";
 
@@ -52,7 +53,7 @@ function UserEditProfile() {
         navigation("/home");
       }, 5000)
     } catch (error) {
-      showAlert('Some Error occured', error.response.data[0].msg, 'failure');
+      showAlert('Some Error occured', getErrorMessage(error), 'failure');
 
       Console.log(error.response);
     } finally {

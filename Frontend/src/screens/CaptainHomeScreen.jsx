@@ -6,6 +6,7 @@ import { Phone, User } from "lucide-react";
 import { SocketDataContext } from "../contexts/SocketContext";
 import { NewRide, Sidebar } from "../components";
 import Console from "../utils/console";
+import { getErrorMessage } from "../utils/errorMessage";
 import { useAlert } from "../hooks/useAlert";
 import { Alert } from "../components";
 
@@ -97,7 +98,7 @@ function CaptainHomeScreen() {
       }
     } catch (error) {
       setLoading(false);
-      showAlert('Some error occured', error.response.data.message, 'failure');
+      showAlert('Some error occured', getErrorMessage(error), 'failure');
       Console.log(error.response);
       setTimeout(() => {
         clearRideData();

@@ -6,6 +6,7 @@ import axios from "axios";
 import { useCaptain } from "../contexts/CaptainContext";
 import { ArrowLeft } from "lucide-react";
 import Console from "../utils/console";
+import { getErrorMessage } from "../utils/errorMessage";
 
 function CaptainEditProfile() {
   const token = localStorage.getItem("token");
@@ -51,7 +52,7 @@ function CaptainEditProfile() {
       Console.log(response);
       navigation("/captain/home");
     } catch (error) {
-      setResponseError(error.response.data[0].msg);
+      setResponseError(getErrorMessage(error));
       Console.log(error.response);
       Console.log(error);
     } finally {

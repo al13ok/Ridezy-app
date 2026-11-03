@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button, Heading, Input } from "../components";
 import axios from "axios";
 import Console from "../utils/console";
+import { getErrorMessage } from "../utils/errorMessage";
 
 function UserSignup() {
   const [responseError, setResponseError] = useState("");
@@ -37,7 +38,7 @@ function UserSignup() {
       localStorage.setItem("token", response.data.token);
       navigation("/home");
     } catch (error) {
-      setResponseError(error.response.data[0].msg);
+      setResponseError(getErrorMessage(error));
       Console.log(error);
     } finally {
       setLoading(false);

@@ -5,6 +5,7 @@ const { validationResult } = require("express-validator");
 const blacklistTokenModel = require("../models/blacklistToken.model");
 const jwt = require("jsonwebtoken");
 const { verifyResetToken, consumeResetToken } = require("../utils/resetToken");
+const { isDemoAccount, DEMO_LOCKED_MESSAGE } = require("../utils/demo");
 
 module.exports.registerUser = asyncHandler(async (req, res) => {
   const errors = validationResult(req);
@@ -127,6 +128,10 @@ module.exports.updateUserProfile = asyncHandler(async (req, res) => {
     return res.status(400).json(errors.array());
   }
 
+  if (isDemoAccount(req.user.email)) {
+    return res.status(403).json({ message: DEMO_LOCKED_MESSAGE });
+  }
+
   const { fullname,  phone } = req.body;
 
   const updatedUserData = await userModel.findOneAndUpdate(
@@ -179,6 +184,10 @@ module.exports.resetPassword = asyncHandler(async (req, res) => {
     return res.status(404).json({
       message: "User not found. Please check your credentials and try again",
     });
+
+  if (isDemoAccount(user.email)) {
+    return res.status(403).json({ message: DEMO_LOCKED_MESSAGE });
+  }
 
   user.password = await userModel.hashPassword(password);
   await user.save();

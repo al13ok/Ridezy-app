@@ -4,6 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button, Heading, Input } from "../components";
 import axios from "axios";
 import Console from "../utils/console";
+import { getErrorMessage } from "../utils/errorMessage";
+import { DEMO_ACCOUNTS } from "../utils/demo";
 
 function CaptainLogin() {
   const [responseError, setResponseError] = useState("");
@@ -33,7 +35,7 @@ function CaptainLogin() {
         }));
         navigation("/captain/home");
       } catch (error) {
-        setResponseError(error.response.data.message);
+        setResponseError(getErrorMessage(error));
         Console.log(error);
       } finally {
         setLoading(false);
@@ -75,6 +77,14 @@ function CaptainLogin() {
           </Link>
           <Button title={"Login"} loading={loading} type="submit" />
         </form>
+        {/* One-click demo: no signup, no email verification */}
+        <div className="flex items-center gap-3 my-4 text-xs text-zinc-400"><div className="h-px flex-1 bg-zinc-200"></div>OR<div className="h-px flex-1 bg-zinc-200"></div></div>
+        <Button
+          title={"Try instantly as Demo Captain"}
+          loading={loading}
+          fun={() => loginCaptain(DEMO_ACCOUNTS.captain)}
+          classes={"bg-green-600"}
+        />
         <p className="text-sm font-normal text-center mt-4">
           Don't have an account?{" "}
           <Link to={"/captain/signup"} className="font-semibold">

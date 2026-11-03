@@ -5,6 +5,7 @@ import { Button, Heading, Input } from "../components";
 import axios from "axios";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import Console from "../utils/console";
+import { getErrorMessage } from "../utils/errorMessage";
 
 function CaptainSignup() {
   const [responseError, setResponseError] = useState("");
@@ -48,7 +49,7 @@ function CaptainSignup() {
       navigation("/captain/home");
     } catch (error) {
       setResponseError(
-        error.response.data[0]?.msg || error.response.data.message
+        getErrorMessage(error)
       );
       setShowVehiclePanel(false);
       Console.log(error);
