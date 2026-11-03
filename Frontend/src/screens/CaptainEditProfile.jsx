@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { Button, Heading, Input } from "../components";
+import { Button, Input } from "../components";
 import axios from "axios";
 import { useCaptain } from "../contexts/CaptainContext";
-import { ArrowLeft } from "lucide-react";
+import { Hash, Mail, Palette, Phone, Users } from "lucide-react";
+import { Avatar, PageHeader, VehicleTypePicker } from "../components/ui";
 import Console from "../utils/console";
 
 function CaptainEditProfile() {
@@ -65,94 +66,94 @@ function CaptainEditProfile() {
     }, 5000);
   }, [responseError]);
   return (
-    <div className="w-full h-dvh flex flex-col justify-between p-4 pt-6">
-      <div className="overflow-auto">
-        <div className="flex gap-3">
-          <ArrowLeft
-            strokeWidth={3}
-            className="mt-[5px] cursor-pointer"
-            onClick={() => navigation(-1)}
-          />
-          <Heading title={"Edit Profile"} />
+    <div className="h-dvh w-full overflow-y-auto bg-ink-100">
+      <PageHeader title="Edit profile" subtitle="Captain account" onBack={() => navigation(-1)} />
+      <div className="px-4 pb-8">
+        <div className="mb-4 flex flex-col items-center pt-2 text-center">
+          <Avatar firstname={captain?.fullname?.firstname} lastname={captain?.fullname?.lastname} size="xl" tone="ink" />
+          <p className="mt-3 text-lg font-extrabold tracking-tight">
+            {captain?.fullname?.firstname} {captain?.fullname?.lastname}
+          </p>
+          <p className="text-xs text-ink-500">{captain?.email}</p>
         </div>
+
         <Input
           label={"Email"}
           type={"email"}
           name={"email"}
+          icon={Mail}
           register={register}
           error={errors.email}
           defaultValue={captain.email}
           disabled={true}
         />
         <form onSubmit={handleSubmit(updateUserProfile)}>
-          <Input
-            label={"Phone Number"}
-            type={"number"}
-            name={"phone"}
-            register={register}
-            error={errors.phone}
-            defaultValue={captain.phone}
-          />
-          <div className="flex gap-4 -mb-2">
+          <div className="card mb-3 p-5">
+            <p className="eyebrow mb-3">Personal details</p>
+            <div className="flex gap-3">
+              <Input
+                label={"First name"}
+                name={"firstname"}
+                register={register}
+                error={errors.firstname}
+                defaultValue={captain.fullname.firstname}
+              />
+              <Input
+                label={"Last name"}
+                name={"lastname"}
+                register={register}
+                error={errors.lastname}
+                defaultValue={captain.fullname.lastname}
+              />
+            </div>
             <Input
-              label={"First name"}
-              name={"firstname"}
-              register={register}
-              error={errors.firstname}
-              defaultValue={captain.fullname.firstname}
-            />
-            <Input
-              label={"Last name"}
-              name={"lastname"}
-              register={register}
-              error={errors.lastname}
-              defaultValue={captain.fullname.lastname}
-            />
-          </div>
-          <div className="flex gap-4 -my-2">
-            <Input
-              label={"Vehicle colour"}
-              name={"color"}
-              register={register}
-              error={errors.color}
-              defaultValue={captain.vehicle.color}
-            />
-            <Input
-              label={"Vehicle capacity"}
+              label={"Phone number"}
               type={"number"}
-              name={"capacity"}
+              name={"phone"}
+              icon={Phone}
               register={register}
-              error={errors.capacity}
-              defaultValue={captain.vehicle.capacity}
+              error={errors.phone}
+              defaultValue={captain.phone}
             />
           </div>
-          <Input
-            label={"Vehicle number"}
-            name={"number"}
-            register={register}
-            error={errors.number}
-            defaultValue={captain.vehicle.number}
-          />
-          <Input
-            label={"Vehicle type"}
-            type={"select"}
-            options={["Car", "Bike", "Auto"]}
-            name={"type"}
-            register={register}
-            error={errors.type}
-            defaultValue={captain.vehicle.type}
-          />
+
+          <div className="card mb-4 p-5">
+            <p className="eyebrow mb-3">Vehicle details</p>
+            <VehicleTypePicker register={register} error={errors.type} defaultValue={captain.vehicle.type} />
+            <div className="flex gap-3">
+              <Input
+                label={"Colour"}
+                name={"color"}
+                icon={Palette}
+                register={register}
+                error={errors.color}
+                defaultValue={captain.vehicle.color}
+              />
+              <Input
+                label={"Seats"}
+                type={"number"}
+                name={"capacity"}
+                icon={Users}
+                register={register}
+                error={errors.capacity}
+                defaultValue={captain.vehicle.capacity}
+              />
+            </div>
+            <Input
+              label={"Vehicle number"}
+              name={"number"}
+              icon={Hash}
+              register={register}
+              error={errors.number}
+              defaultValue={captain.vehicle.number}
+            />
+          </div>
           {responseError && (
-            <p className="text-sm text-center mb-4 text-red-500">
+            <p className="mb-4 rounded-xl bg-red-50 px-4 py-2.5 text-center text-sm font-medium text-red-600">
               {responseError}
             </p>
           )}
-          <Button
-            title={"Update Profile"}
-            loading={loading}
-            type="submit"
-            classes={"mt-4"}
-          />
+          <Button title={"Save changes"} loading={loading} type="submit" size="lg" />
         </form>
       </div>
     </div>

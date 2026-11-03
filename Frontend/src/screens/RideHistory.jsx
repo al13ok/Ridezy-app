@@ -1,17 +1,13 @@
-import  { useState } from "react";
-import {
-  ArrowLeft,
-  Calendar,
-  ChevronUp,
-  Clock,
-  CreditCard
-} from "lucide-react";
+import { useState } from "react";
+import { Calendar, ChevronDown, Clock, MapPinned } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { PageHeader, RouteTimeline, StatusPill, vehicleImage } from "../components/ui";
 
 function RideHistory() {
   const navigation = useNavigate();
   const userData = JSON.parse(localStorage.getItem("userData"));
-  const [user, setUser] = useState(userData.data);
+  const [user] = useState(userData.data);
+  const isCaptain = userData?.type === "captain";
 
   function classifyAndSortRides(rides) {
     const today = new Date();
@@ -31,15 +27,12 @@ function RideHistory() {
       date.getDate() === yesterday.getDate();
 
     // Helper function to sort rides by date (recent to oldest)
-    const sortByDate = (rides) =>
-      rides.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const sortByDate = (rides) => rides.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    // Arrays to hold classified rides
     const todayRides = [];
     const yesterdayRides = [];
     const earlierRides = [];
 
-    // Classify rides
     rides.forEach((ride) => {
       const createdDate = new Date(ride.createdAt);
       if (isToday(createdDate)) {
@@ -51,7 +44,6 @@ function RideHistory() {
       }
     });
 
-    // Return sorted arrays
     return {
       today: sortByDate(todayRides),
       yesterday: sortByDate(yesterdayRides),
@@ -59,66 +51,66 @@ function RideHistory() {
     };
   }
 
+  const rides = user?.rides || [];
+  const grouped = classifyAndSortRides([...rides]);
+  const completed = rides.filter((r) => r.status === "completed");
+  const totalAmount = completed.reduce((sum, r) => sum + (r.fare || 0), 0);
+
+  const sections = [
+    { key: "today", label: "Today" },
+    { key: "yesterday", label: "Yesterday" },
+    { key: "earlier", label: "Earlier" },
+  ];
+
   return (
-    <div className="p-4">
-      <div className="flex gap-3">
-        <ArrowLeft
-          strokeWidth={3}
-          className="mt-[4px] cursor-pointer"
-          onClick={() => navigation(-1)}
-        />
-        {/* <Heading title={"Edit Profile"} /> */}
-        <h1 className="text-2xl font-semibold mb-4">History</h1>
-      </div>
+    <div className="h-dvh overflow-y-auto bg-ink-100">
+      <PageHeader title="Your rides" subtitle={`${rides.length} trip${rides.length === 1 ? "" : "s"}`} onBack={() => navigation(-1)} />
 
-      <div className="h-[90vh] overflow-scroll ">
-        <details open className="group">
-          <summary className="flex items-center justify-between cursor-pointer text-gray-800 font-semibold mb-2 select-none">
-            <span>Today</span>
-            <ChevronUp className="w-5 h-5 transition-transform duration-300 group-open:rotate-180 text-gray-600" />
-          </summary>
-          {classifyAndSortRides(user.rides).today.length > 0 ? (
-            classifyAndSortRides(user.rides).today.map((ride) => {
-              return <Ride ride={ride} key={ride._id} />;
-            })
-          ) : (
-            <h1 className="text-sm text-center text-zinc-600">
-              No rides found
-            </h1>
-          )}
-        </details>
+      <div className="px-4 pb-8">
+        {/* Summary */}
+        <div className="mb-5 grid grid-cols-2 gap-2">
+          <div className="rounded-2xl bg-ink-900 p-4 text-white">
+            <p className="text-xs text-white/60">Completed trips</p>
+            <p className="mt-1 text-2xl font-extrabold tracking-tight">{completed.length}</p>
+          </div>
+          <div className="rounded-2xl bg-brand-500 p-4 text-white">
+            <p className="text-xs text-white/80">{isCaptain ? "Total earned" : "Total spent"}</p>
+            <p className="mt-1 text-2xl font-extrabold tracking-tight">₹{totalAmount}</p>
+          </div>
+        </div>
 
-        <details open className="group">
-          <summary className="flex items-center justify-between cursor-pointer text-gray-800 font-semibold mb-2 select-none">
-            <span>Yesterday</span>
-            <ChevronUp className="w-5 h-5 transition-transform duration-300 group-open:rotate-180 text-gray-600" />
-          </summary>
-          {classifyAndSortRides(user.rides).yesterday.length > 0 ? (
-            classifyAndSortRides(user.rides).yesterday.map((ride) => {
-              return <Ride ride={ride} key={ride._id} />;
-            })
-          ) : (
-            <h1 className="text-sm text-center text-zinc-600">
-              No rides found
-            </h1>
-          )}
-        </details>
+        {rides.length === 0 && (
+          <div className="card flex flex-col items-center p-8 text-center">
+            <span className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-ink-100 text-ink-400">
+              <MapPinned size={26} />
+            </span>
+            <p className="font-semibold">No rides yet</p>
+            <p className="mt-1 text-xs text-ink-500">Your trips will show up here.</p>
+          </div>
+        )}
 
-        <details open className="group">
-          <summary className="flex items-center justify-between cursor-pointer text-gray-800 font-semibold mb-2 select-none">
-            <span>Earlier</span>
-            <ChevronUp className="w-5 h-5 transition-transform duration-300 group-open:rotate-180 text-gray-600" />
-          </summary>
-          {classifyAndSortRides(user.rides).earlier.length > 0 ? (
-            classifyAndSortRides(user.rides).earlier.map((ride) => {
-              return <Ride ride={ride} key={ride._id} />;
-            })
-          ) : (
-            <h1 className="text-sm text-center text-zinc-600">
-              No rides found
-            </h1>
-          )}
-        </details>
+        {rides.length > 0 &&
+          sections.map(({ key, label }) => (
+            <details open className="group mb-4" key={key}>
+              <summary className="mb-2 flex cursor-pointer select-none list-none items-center justify-between px-1">
+                <span className="text-sm font-bold text-ink-700">
+                  {label} <span className="font-medium text-ink-400">· {grouped[key].length}</span>
+                </span>
+                <ChevronDown size={18} className="text-ink-400 transition-transform duration-300 group-open:rotate-180" />
+              </summary>
+              {grouped[key].length > 0 ? (
+                <div className="space-y-2">
+                  {grouped[key].map((ride) => (
+                    <Ride ride={ride} key={ride._id} />
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-2xl border border-dashed border-ink-200 py-4 text-center text-xs text-ink-400">
+                  No rides {label.toLowerCase()}
+                </p>
+              )}
+            </details>
+          ))}
       </div>
     </div>
   );
@@ -127,96 +119,42 @@ function RideHistory() {
 export const Ride = ({ ride }) => {
   function formatDate(inputDate) {
     const date = new Date(inputDate);
-
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-
-    const day = date.getDate();
-    const month = months[date.getMonth()];
-    const year = date.getFullYear();
-
-    return `${day} ${month}, ${year}`;
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${date.getDate()} ${months[date.getMonth()]}, ${date.getFullYear()}`;
   }
 
   function formatTime(inputDate) {
     const date = new Date(inputDate);
-
-    // Extract hours and minutes
     let hours = date.getHours();
     const minutes = date.getMinutes();
-
-    // Determine AM/PM
     const period = hours >= 12 ? "PM" : "AM";
-
-    // Convert hours to 12-hour format
-    hours = hours % 12 || 12; // Convert 0 to 12 for midnight
-
-    // Format minutes to always show two digits
+    hours = hours % 12 || 12;
     const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-
-    // Return the formatted time
     return `${hours}:${formattedMinutes} ${period}`;
   }
 
   return (
-    <div className="w-full px-3 py-2 border-2 mb-2 rounded-lg  cursor-pointer relative">
-      <div className="flex flex-wrap gap-2 justify-around">
-        <h1 className="text-sm flex gap-1 items-center font-semibold">
-          <Calendar size={13} className="-mt-[1px]" />{" "}
-          {formatDate(ride.createdAt)}
-        </h1>
-
-        <h1 className="text-sm flex gap-1 items-center font-semibold">
-          <Clock size={13} className="-mt-[1px]" /> {formatTime(ride.createdAt)}
-        </h1>
-        <h1 className="text-sm flex gap-1 items-center font-semibold ">
-          <CreditCard size={13} className="-mt-[1px] text-black" />₹ {ride.fare}
-        </h1>
-        {/* </div>
-        <div className="flex flex-wrap gap-2 justify-around">
-          <h1 className="text-xs flex gap-1 items-center font-semibold">
-            <Route size={13} className="-mt-[1px]" />{" "}
-            {Math.round(ride.distance / 1000)} KM
-          </h1>
-          <h1 className="text-xs flex gap-1 items-center font-semibold">
-            <Timer size={13} className="-mt-[1px]" />{" "}
-            {Math.round(ride.duration / 60)} minutes
-          </h1> */}
-      </div>
-
-      <div className="bg-zinc-200 w-full h-[1px] my-2"></div>
-
-      <div className="w-full  items-center truncate">
-        <div className="flex items-center relative w-full h-fit">
-          <div className="h-4/5 w-[3px] flex flex-col items-center justify-between border-dashed border-2  border-black rounded-full absolute mx-2">
-            <div className="w-3 h-3 rounded-full border-[3px] -mt-1 bg-green-500 border-black"></div>
-            <div className="w-3 h-3 rounded-sm border-[3px] -mb-1 bg-red-400 border-black"></div>
-          </div>
-          <div className="ml-7 truncate w-full">
-            <h1 className=" text-xs truncate text-zinc-600 " title={ride.pickup}>{ride.pickup}</h1>
-            <div className="flex items-center gap-2">
-              <div className="bg-zinc-200 w-full h-[2px]"></div>
-              <h1 className="text-xs text-zinc-500 ">TO</h1>
-              <div className="bg-zinc-200 w-full h-[2px]"></div>
-            </div>
-            <h1 className=" text-xs truncate text-zinc-600 " title={ride.destination}>
-              {ride.destination}
-            </h1>
+    <div className="card p-4">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="flex h-10 w-12 items-center justify-center rounded-xl bg-ink-50">
+            <img src={vehicleImage(ride.vehicle)} alt="" className="h-7 object-contain mix-blend-multiply" />
+          </span>
+          <div>
+            <p className="flex items-center gap-1 text-xs font-semibold text-ink-700">
+              <Calendar size={12} /> {formatDate(ride.createdAt)}
+            </p>
+            <p className="flex items-center gap-1 text-xs text-ink-400">
+              <Clock size={12} /> {formatTime(ride.createdAt)}
+            </p>
           </div>
         </div>
+        <div className="text-right">
+          <p className="text-base font-extrabold tracking-tight">₹{ride.fare}</p>
+          <StatusPill status={ride.status} />
+        </div>
       </div>
+      <RouteTimeline pickup={ride.pickup} destination={ride.destination} compact />
     </div>
   );
 };

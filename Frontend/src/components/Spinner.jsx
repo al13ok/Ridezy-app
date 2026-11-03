@@ -1,11 +1,18 @@
-function Spinner({scale}) {
+// Pure-CSS spinner (the old one loaded a GIF from an external website).
+const sizes = {
+  sm: "w-5 h-5 border-2",
+  md: "w-8 h-8 border-[3px]",
+  lg: "w-12 h-12 border-4",
+};
+
+function Spinner({ size = "sm", className = "" }) {
   return (
-    <div>
-      <img
-        src="https://i0.wp.com/css-tricks.com/wp-content/uploads/2021/08/s_2A9C470D38F43091CCD122E63014ED4503CAA7508FAF0C6806AE473C2B94B83E_1627522653545_loadinfo.gif?resize=200%2C200&ssl=1"
-        className={`w-6 h-6 scale-${scale}`}
-      />
-    </div>
+    <span
+      role="status"
+      aria-label="Loading"
+      className={`inline-block shrink-0 rounded-full border-current border-r-transparent animate-spin ${sizes[size] || sizes.sm} ${className}`}
+    />
   );
 }
+
 export default Spinner;

@@ -3,8 +3,11 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { Button, Heading, Input } from "../components";
 import axios from "axios";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Hash, Lock, Mail, Palette, Phone, Users } from "lucide-react";
 import Console from "../utils/console";
+import { AuthLayout, VehicleTypePicker } from "../components/ui";
+import RoleSwitch from "../components/RoleSwitch";
+import { getErrorMessage } from "../utils/errorMessage";
 
 function CaptainSignup() {
   const [responseError, setResponseError] = useState("");
@@ -19,7 +22,6 @@ function CaptainSignup() {
 
   const navigation = useNavigate();
   const signupCaptain = async (data) => {
-
     const captainData = {
       fullname: {
         firstname: data.firstname,
@@ -39,17 +41,12 @@ function CaptainSignup() {
 
     try {
       setLoading(true);
-      const response = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/captain/register`,
-        captainData
-      );
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_URL}/captain/register`, captainData);
       Console.log(response);
       localStorage.setItem("token", response.data.token);
       navigation("/captain/home");
     } catch (error) {
-      setResponseError(
-        error.response.data[0]?.msg || error.response.data.message
-      );
+      setResponseError(getErrorMessage(error));
       setShowVehiclePanel(false);
       Console.log(error);
     } finally {
@@ -63,133 +60,74 @@ function CaptainSignup() {
     }, 5000);
   }, [responseError]);
 
+  const step = showVehiclePanel ? 2 : 1;
+
   return (
-    <div className="w-full h-dvh flex flex-col justify-between p-4 pt-6">
-      <div>
-        <Heading title={"Captain Sign Up🚕"} />
-        <form onSubmit={handleSubmit(signupCaptain)}>
-          {!showVehiclePanel && (
-            <>
-              <div className="flex gap-4 -mb-2">
-                <Input
-                  label={"First name"}
-                  name={"firstname"}
-                  register={register}
-                  error={errors.firstname}
-                />
-                <Input
-                  label={"Last name"}
-                  name={"lastname"}
-                  register={register}
-                  error={errors.lastname}
-                />
-              </div>
-              <Input
-                label={"Phone Number"}
-                type={"number"}
-                name={"phone"}
-                register={register}
-                error={errors.phone}
-              />
-              <Input
-                label={"Email"}
-                type={"email"}
-                name={"email"}
-                register={register}
-                error={errors.email}
-              />
+    <AuthLayout
+      badge="Captain"
+      footer={<RoleSwitch to="/signup" title="Just want to ride?" subtitle="Create a rider account" captain={false} />}
+    >
+      {/* Stepper */}
+      <div className="mb-5 flex items-center gap-2">
+        {[1, 2].map((s) => (
+          <div key={s} className={`h-1.5 flex-1 rounded-full transition-colors ${s <= step ? "bg-brand-500" : "bg-ink-200"}`} />
+        ))}
+      </div>
+      <p className="eyebrow mb-1">Step {step} of 2</p>
+      <Heading
+        title={step === 1 ? "Become a captain" : "Your vehicle"}
+        subtitle={step === 1 ? "Tell us a little about yourself." : "Riders will see these details when you arrive."}
+      />
 
-              <Input
-                label={"Password"}
-                type={"password"}
-                name={"password"}
-                register={register}
-                error={errors.password}
-              />
-              {responseError && (
-                <p className="text-sm text-center mb-4 text-red-500">
-                  {responseError}
-                </p>
-              )}
-              <div
-                className={`cursor-pointer flex justify-center items-center gap-2 py-3 font-semibold bg-black text-white w-full rounded-lg`}
-                onClick={() => {
-                  setShowVehiclePanel(true);
-                }}
+      <form onSubmit={handleSubmit(signupCaptain)}>
+        {!showVehiclePanel && (
+          <div className="animate-fade-in">
+            <div className="flex gap-3">
+              <Input label={"First name"} name={"firstname"} placeholder="Aman" register={register} error={errors.firstname} />
+              <Input label={"Last name"} name={"lastname"} placeholder="Singh" register={register} error={errors.lastname} />
+            </div>
+            <Input label={"Phone number"} type={"number"} name={"phone"} placeholder="10-digit mobile number" icon={Phone} register={register} error={errors.phone} />
+            <Input label={"Email"} type={"email"} name={"email"} placeholder="you@example.com" icon={Mail} register={register} error={errors.email} />
+            <Input label={"Password"} type={"password"} name={"password"} placeholder="At least 8 characters" icon={Lock} register={register} error={errors.password} />
+            {responseError && (
+              <p className="mb-4 rounded-xl bg-red-50 px-4 py-2.5 text-center text-sm font-medium text-red-600">{responseError}</p>
+            )}
+            <Button title={"Continue"} icon={<ArrowRight size={18} />} size="lg" fun={() => setShowVehiclePanel(true)} />
+          </div>
+        )}
+        {showVehiclePanel && (
+          <div className="animate-fade-in">
+            <VehicleTypePicker register={register} error={errors.type} />
+            <div className="flex gap-3">
+              <Input label={"Colour"} name={"color"} placeholder="White" icon={Palette} register={register} error={errors.color} />
+              <Input label={"Seats"} type={"number"} name={"capacity"} placeholder="4" icon={Users} register={register} error={errors.capacity} />
+            </div>
+            <Input label={"Vehicle number"} name={"number"} placeholder="DL 01 AB 1234" icon={Hash} register={register} error={errors.number} />
+
+            {responseError && (
+              <p className="mb-4 rounded-xl bg-red-50 px-4 py-2.5 text-center text-sm font-medium text-red-600">{responseError}</p>
+            )}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                aria-label="Back"
+                onClick={() => setShowVehiclePanel(false)}
+                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-ink-200 bg-white text-ink-900 transition hover:border-ink-900 active:scale-95"
               >
-                Next <ChevronRight strokeWidth={2.5} />
-              </div>
-            </>
-          )}
-          {showVehiclePanel && (
-            <>
-              <ArrowLeft
-                onClick={() => {
-                  setShowVehiclePanel(false);
-                }}
-                className="cursor-pointer -ml-1 mb-4"
-              />
-              <div className="flex gap-4 -my-2">
-                <Input
-                  label={"Vehicle colour"}
-                  name={"color"}
-                  register={register}
-                  error={errors.color}
-                />
-                <Input
-                  label={"Vehicle capacity"}
-                  type={"number"}
-                  name={"capacity"}
-                  register={register}
-                  error={errors.capacity}
-                />
-              </div>
-              <Input
-                label={"Vehicle number"}
-                name={"number"}
-                register={register}
-                error={errors.number}
-              />
-              <Input
-                label={"Vehicle type"}
-                type={"select"}
-                options={["Car", "Bike", "Auto"]}
-                name={"type"}
-                register={register}
-                error={errors.type}
-              />
-
-              {responseError && (
-                <p className="text-sm text-center mb-4 text-red-500">
-                  {responseError}
-                </p>
-              )}
-              <Button title={"Sign Up"} loading={loading} type="submit" />
-            </>
-          )}
-        </form>
-        <p className="text-sm font-normal text-center mt-4">
-          Already have an account?{" "}
-          <Link to={"/captain/login"} className="font-semibold">
-            Login
-          </Link>
-        </p>
-      </div>
-      <div>
-        <Button
-          type={"link"}
-          path={"/signup"}
-          title={"Sign Up as User"}
-          classes={"bg-green-500"}
-        />
-        <p className="text-xs font-normal text-center self-end mt-6">
-          This site is protected by reCAPTCHA and the Google{" "}
-          <span className="font-semibold underline">Privacy Policy</span> and{" "}
-          <span className="font-semibold underline">Terms of Service</span>{" "}
-          apply.
-        </p>
-      </div>
-    </div>
+                <ArrowLeft size={20} />
+              </button>
+              <Button title={"Create captain account"} loading={loading} type="submit" variant="brand" size="lg" />
+            </div>
+          </div>
+        )}
+      </form>
+      <p className="mt-5 text-center text-sm text-ink-500">
+        Already a captain?{" "}
+        <Link to={"/captain/login"} className="font-bold text-ink-900 underline-offset-4 hover:underline">
+          Log in
+        </Link>
+      </p>
+    </AuthLayout>
   );
 }
 

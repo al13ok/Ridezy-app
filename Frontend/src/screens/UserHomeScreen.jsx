@@ -10,6 +10,8 @@ import {
 } from "../components";
 import axios from "axios";
 import debounce from "lodash.debounce";
+import { ArrowRight, LocateFixed } from "lucide-react";
+import { IconButton } from "../components/ui";
 import { SocketDataContext } from "../contexts/SocketContext";
 import Console from "../utils/console";
 
@@ -173,6 +175,8 @@ setLocationSuggestion(filteredLocations);
 
   const cancelRide = async () => {
     Console.log("CANCEL RIDE CALLED");
+    // Stop the auto-cancel timer so it can't fire later against a NEW ride.
+    clearTimeout(rideTimeout.current);
     const rideDetails = JSON.parse(localStorage.getItem("rideDetails"));
     try {
       setLoading(true);
@@ -340,12 +344,7 @@ setLocationSuggestion(filteredLocations);
 });
 
      socket.on("ride-ended", (data) => {
-  console.log("🔥🔥🔥 RIDE ENDED EVENT RECEIVED");
-  console.log(data);
-
-   console.log("RIDE ENDED DATA");
-  console.log(data);
-  console.log("STATUS =", data.status);
+  Console.log("Ride ended", data);
   setConfirmedRideData(data);
 
   localStorage.setItem(
@@ -434,81 +433,109 @@ setLocationSuggestion(filteredLocations);
     };
   }, [confirmedRideData]);
 
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 17) return "Good afternoon";
+    return "Good evening";
+  })();
+
   return (
     <div
-      className="relative w-full h-dvh bg-contain"
+      className="relative w-full h-dvh overflow-hidden bg-cover bg-center"
       style={{ backgroundImage: `url(${map})` }}
     >
       <Sidebar />
       <iframe
         src={mapLocation}
-        className="absolute map w-full h-[120vh]"
+        className="absolute inset-x-0 top-0 map w-full h-[120vh]"
         allowFullScreen={true}
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"
       ></iframe>
-      {/* Find a trip component */}
-      {showFindTripPanel && (
-        <div className="absolute b-0 flex flex-col justify-start p-4 pb-2 gap-4 rounded-b-lg bg-white h-fit w-full">
-          <h1 className="text-2xl font-semibold">Find a trip</h1>
-          <div className="flex items-center relative w-full h-fit">
-            <div className="h-3/5 w-[3px] flex flex-col items-center justify-between bg-black rounded-full absolute mx-5">
-              <div className="w-2 h-2 rounded-full border-[3px]  bg-white border-black"></div>
-              <div className="w-2 h-2 rounded-sm border-[3px]  bg-white border-black"></div>
-            </div>
-            <div>
-            
-<input
-  id="pickup"
-  placeholder="Add a pick-up location"
-  className="w-full bg-zinc-100 pl-10 pr-4 py-3 rounded-lg outline-black text-sm mb-2 truncate"
-  value={pickupLocation}
-  onChange={onChangeHandler}
-  autoComplete="off"
-  onFocus={() => {
-    setSelectedInput("pickup");
-    setLocationSuggestion([
-      "Indira Colony",
-      "Kashmere Gate",
-      "Connaught Place",
-      "Rajiv Chowk",
-      "Saket",
-    ]);
-  }}
-/>
+      {/* Soft fade so the floating controls stay readable over the map */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-white/70 to-transparent" />
 
-<input
-  id="destination"
-  placeholder="Add a drop-off location"
-  className="w-full bg-zinc-100 pl-10 pr-4 py-3 rounded-lg outline-black text-sm truncate"
-  value={destinationLocation}
-  onChange={onChangeHandler}
-  autoComplete="off"
-  onFocus={() => {
-    setSelectedInput("destination");
-    setLocationSuggestion([
-      "Noida Sector 18",
-      "IGI Airport",
-      "Gurgaon Cyber Hub",
-      "Chandigarh University",
-      "Elante Mall",
-    ]);
-  }}
-/>
+      {/* Re-center on my location */}
+      <IconButton onClick={updateLocation} label="Use my location" className="absolute right-4 top-4 z-10">
+        <LocateFixed size={19} />
+      </IconButton>
+
+      {/* Find a trip sheet */}
+      {showFindTripPanel && (
+        <div className="sheet max-h-[85%] overflow-y-auto animate-slide-up">
+          <div className="sheet-handle" />
+          <p className="text-sm font-medium text-ink-500">
+            {greeting}
+            {user?.fullname?.firstname ? `, ${user.fullname.firstname}` : ""} 👋
+          </p>
+          <h1 className="mb-4 text-[26px] font-extrabold leading-tight tracking-tight">Where to?</h1>
+
+          <div className="relative rounded-2xl bg-ink-50 p-2 ring-1 ring-ink-200/70">
+            {/* timeline dots */}
+            <div className="pointer-events-none absolute bottom-[30px] left-[26px] top-[30px] w-0.5 bg-gradient-to-b from-brand-500 to-ink-900" />
+            <div className="relative flex items-center">
+              <span className="absolute left-[19px] z-[1] h-4 w-4 rounded-full border-[4px] border-brand-500 bg-white" />
+              <input
+                id="pickup"
+                placeholder="Pickup location"
+                className="h-12 w-full truncate rounded-xl bg-transparent pl-12 pr-3 text-sm font-semibold text-ink-900 outline-none transition placeholder:font-medium placeholder:text-ink-400 focus:bg-white focus:shadow-soft"
+                value={pickupLocation}
+                onChange={onChangeHandler}
+                autoComplete="off"
+                onFocus={() => {
+                  setSelectedInput("pickup");
+                  setLocationSuggestion([
+                    "Indira Colony",
+                    "Kashmere Gate",
+                    "Connaught Place",
+                    "Rajiv Chowk",
+                    "Saket",
+                  ]);
+                }}
+              />
+            </div>
+            <div className="mx-3 ml-12 h-px bg-ink-200" />
+            <div className="relative flex items-center">
+              <span className="absolute left-[19px] z-[1] h-4 w-4 rounded-[5px] border-[4px] border-ink-900 bg-white" />
+              <input
+                id="destination"
+                placeholder="Where are you going?"
+                className="h-12 w-full truncate rounded-xl bg-transparent pl-12 pr-3 text-sm font-semibold text-ink-900 outline-none transition placeholder:font-medium placeholder:text-ink-400 focus:bg-white focus:shadow-soft"
+                value={destinationLocation}
+                onChange={onChangeHandler}
+                autoComplete="off"
+                onFocus={() => {
+                  setSelectedInput("destination");
+                  setLocationSuggestion([
+                    "Noida Sector 18",
+                    "IGI Airport",
+                    "Gurgaon Cyber Hub",
+                    "Chandigarh University",
+                    "Elante Mall",
+                  ]);
+                }}
+              />
             </div>
           </div>
+
           {pickupLocation.length > 2 && destinationLocation.length > 2 && (
-            <Button
-              title={"Search"}
-              loading={loading}
-              fun={() => {
-                getDistanceAndFare(pickupLocation, destinationLocation);
-              }}
-            />
+            <div className="mt-4 animate-fade-in">
+              <Button
+                title={"See prices"}
+                icon={<ArrowRight size={18} />}
+                variant="brand"
+                size="lg"
+                loading={loading}
+                fun={() => {
+                  getDistanceAndFare(pickupLocation, destinationLocation);
+                }}
+              />
+            </div>
           )}
 
-          <div className="w-full h-full overflow-y-scroll ">
-            {locationSuggestion.length > 0 && (
+          {locationSuggestion.length > 0 && (
+            <div className="mt-3">
               <LocationSuggestions
                 suggestions={locationSuggestion}
                 setSuggestions={setLocationSuggestion}
@@ -516,8 +543,8 @@ setLocationSuggestion(filteredLocations);
                 setDestinationLocation={setDestinationLocation}
                 input={selectedInput}
               />
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -2,7 +2,8 @@ import { useContext, useEffect, useState } from "react";
 import map from "/map.png";
 import axios from "axios";
 import { useCaptain } from "../contexts/CaptainContext";
-import { Phone, User } from "lucide-react";
+import { CheckCircle2, Gauge, LocateFixed, Phone, User, Wallet, XCircle } from "lucide-react";
+import { Avatar, IconButton, NumberPlate, vehicleImage } from "../components/ui";
 import { SocketDataContext } from "../contexts/SocketContext";
 import { NewRide, Sidebar } from "../components";
 import Console from "../utils/console";
@@ -331,7 +332,7 @@ function CaptainHomeScreen() {
 
   return (
     <div
-      className="relative w-full h-dvh bg-contain"
+      className="relative w-full h-dvh overflow-hidden bg-cover bg-center"
       style={{ backgroundImage: `url(${map})` }}
     >
       <Alert
@@ -344,89 +345,94 @@ function CaptainHomeScreen() {
       <Sidebar />
       <iframe
         src={mapLocation}
-        className="map w-full h-[80vh]"
+        className="absolute inset-x-0 top-0 map w-full h-[80vh]"
         allowFullScreen={true}
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"
       ></iframe>
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-white/70 to-transparent" />
+
+      {/* Online indicator + re-center */}
+      <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
+        <span className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-4 text-xs font-bold text-ink-900 shadow-float">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-500 opacity-60" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand-500" />
+          </span>
+          Online
+        </span>
+        <IconButton onClick={updateLocation} label="Update my location">
+          <LocateFixed size={19} />
+        </IconButton>
+      </div>
 
       {showCaptainDetailsPanel && (
-        <div className="absolute bottom-0 flex flex-col justify-start p-4 gap-2 rounded-t-lg bg-white h-fit w-full">
-          {/* Driver details */}
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="my-2 select-none rounded-full w-10 h-10 bg-blue-400 mx-auto flex items-center justify-center">
-                <h1 className="text-lg text-white">
-                  {captain?.fullname?.firstname[0]}
-                  {captain?.fullname?.lastname[0]}
-                </h1>
-              </div>
+        <div className="sheet animate-slide-up">
+          <div className="sheet-handle" />
 
-              <div>
-                <h1 className="text-lg font-semibold leading-6">
+          {/* Captain */}
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <Avatar firstname={captain?.fullname?.firstname} lastname={captain?.fullname?.lastname} tone="ink" />
+              <div className="min-w-0">
+                <p className="truncate text-[17px] font-extrabold tracking-tight">
                   {captain?.fullname?.firstname} {captain?.fullname?.lastname}
-                </h1>
-                <p className="text-xs flex items-center gap-1 text-gray-500 ">
+                </p>
+                <p className="flex items-center gap-1 text-xs text-ink-500">
                   <Phone size={12} />
                   {captain?.phone}
                 </p>
               </div>
             </div>
+            <span className="rounded-full bg-ink-100 px-3 py-1 text-[11px] font-semibold text-ink-600">
+              Waiting for rides
+            </span>
+          </div>
 
-            <div className="text-right">
-              <p className="text-xs text-gray-500 ">Earnings</p>
-              <h1 className="font-semibold">₹ {earnings.today}</h1>
+          {/* Earnings */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-ink-900 via-ink-800 to-brand-900 p-5 text-white">
+            <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-brand-500/20 blur-2xl" />
+            <div className="relative flex items-end justify-between">
+              <div>
+                <p className="flex items-center gap-1.5 text-xs font-medium text-white/60">
+                  <Wallet size={14} /> Today&apos;s earnings
+                </p>
+                <p className="mt-1 text-4xl font-extrabold tracking-tight">₹{earnings.today}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[11px] text-white/50">All time</p>
+                <p className="text-lg font-bold">₹{earnings.total}</p>
+              </div>
+            </div>
+            <div className="relative mt-5 grid grid-cols-3 gap-2">
+              {[
+                { value: rides?.accepted, label: "Completed", icon: CheckCircle2 },
+                { value: `${rides?.distanceTravelled}`, label: "Km driven", icon: Gauge },
+                { value: rides?.cancelled, label: "Cancelled", icon: XCircle },
+              ].map(({ value, label, icon: Icon }) => (
+                <div key={label} className="rounded-2xl bg-white/[0.07] px-3 py-2.5 ring-1 ring-white/10">
+                  <Icon size={14} className="mb-1 text-brand-300" />
+                  <p className="text-lg font-bold leading-tight">{value}</p>
+                  <p className="text-[11px] text-white/50">{label}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Ride details */}
-          <div className="flex justify-around items-center mt-2 py-4 rounded-lg bg-zinc-800">
-            <div className="flex flex-col items-center text-white">
-              <h1 className="mb-1 text-xl">{rides?.accepted}</h1>
-              <p className="text-xs text-gray-400 text-center leading-3">
-                Rides
-                <br />
-                Accepted
-              </p>
-            </div>
-            <div className="flex flex-col items-center text-white">
-              <h1 className="mb-1 text-xl">{rides?.distanceTravelled}</h1>
-              <p className="text-xs text-gray-400 text-center leading-3">
-                Km
-                <br />
-                Travelled
-              </p>
-            </div>
-            <div className="flex flex-col items-center text-white">
-              <h1 className="mb-1 text-xl">{rides?.cancelled}</h1>
-              <p className="text-xs text-gray-400 text-center leading-3">
-                Rides
-                <br />
-                Cancelled
-              </p>
-            </div>
-          </div>
-
-          {/* Car details */}
-          <div className="flex justify-between border-2 items-center pl-3 py-2 rounded-lg">
+          {/* Vehicle */}
+          <div className="mt-3 flex items-center justify-between rounded-2xl bg-ink-50 py-2 pl-4 pr-2 ring-1 ring-ink-200/70">
             <div>
-              <h1 className="text-lg font-semibold leading-6 tracking-tighter ">
-                {captain?.vehicle?.number}
-              </h1>
-              <p className="text-xs text-gray-500 flex items-center">
-                {captain?.vehicle?.color} |
-                <User size={12} strokeWidth={2.5} /> {captain?.vehicle?.capacity}
+              <p className="eyebrow mb-1">Your vehicle</p>
+              <NumberPlate number={captain?.vehicle?.number} />
+              <p className="mt-1.5 flex items-center gap-1 text-xs capitalize text-ink-500">
+                {captain?.vehicle?.color} {captain?.vehicle?.type} ·
+                <User size={12} strokeWidth={2.5} /> {captain?.vehicle?.capacity} seats
               </p>
             </div>
-
             <img
-              className="rounded-full h-16 scale-x-[-1]"
-              src={
-                captain?.vehicle?.type == "car"
-                  ? "/car.png"
-                  : `/${captain.vehicle.type}.webp`
-              }
-              alt="Driver picture"
+              className="h-16 w-24 scale-x-[-1] object-contain mix-blend-multiply"
+              src={vehicleImage(captain?.vehicle?.type)}
+              alt="Vehicle"
             />
           </div>
         </div>

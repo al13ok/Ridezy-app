@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { Button, Heading, Input } from "../components";
+import { Button, Input } from "../components";
 import axios from "axios";
 import { useUser } from "../contexts/UserContext";
-import { ArrowLeft } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
+import { Avatar, PageHeader } from "../components/ui";
 import Console from "../utils/console";
 import { useAlert } from "../hooks/useAlert";
 import { Alert } from "../components";
@@ -66,7 +67,7 @@ function UserEditProfile() {
     }, 5000);
   }, [responseError]);
   return (
-    <div className="w-full h-dvh flex flex-col justify-between p-4 pt-6">
+    <div className="relative h-dvh w-full overflow-y-auto bg-ink-100">
       <Alert
         heading={alert.heading}
         text={alert.text}
@@ -74,59 +75,61 @@ function UserEditProfile() {
         onClose={hideAlert}
         type={alert.type}
       />
-      <div>
-        <div className="flex gap-3">
-          <ArrowLeft
-            strokeWidth={3}
-            className="mt-[5px] cursor-pointer"
-            onClick={() => navigation(-1)}
-          />
-          <Heading title={"Edit Profile"} />
+      <PageHeader title="Edit profile" subtitle="Rider account" onBack={() => navigation(-1)} />
+      <div className="px-4 pb-8">
+        <div className="mb-4 flex flex-col items-center pt-2 text-center">
+          <Avatar firstname={user?.fullname?.firstname} lastname={user?.fullname?.lastname} size="xl" />
+          <p className="mt-3 text-lg font-extrabold tracking-tight">
+            {user?.fullname?.firstname} {user?.fullname?.lastname}
+          </p>
+          <p className="text-xs text-ink-500">{user?.email}</p>
         </div>
-        <Input
-          label={"Email"}
-          type={"email"}
-          name={"email"}
-          register={register}
-          error={errors.email}
-          defaultValue={user.email}
-          disabled={true}
-        />
-        <form onSubmit={handleSubmit(updateUserProfile)}>
+
+        <div className="card p-5">
           <Input
-            label={"First name"}
-            name={"firstname"}
+            label={"Email"}
+            type={"email"}
+            name={"email"}
+            icon={Mail}
             register={register}
-            error={errors.firstname}
-            defaultValue={user.fullname.firstname}
+            error={errors.email}
+            defaultValue={user.email}
+            disabled={true}
           />
-          <Input
-            label={"Last name"}
-            name={"lastname"}
-            register={register}
-            error={errors.lastname}
-            defaultValue={user.fullname.lastname}
-          />
-          <Input
-            label={"Phone Number"}
-            type={"number"}
-            name={"phone"}
-            register={register}
-            error={errors.phone}
-            defaultValue={user.phone}
-          />
-          {responseError && (
-            <p className="text-sm text-center mb-4 text-red-500">
-              {responseError}
-            </p>
-          )}
-          <Button
-            title={"Update Profile"}
-            loading={loading}
-            type="submit"
-            classes={"mt-4"}
-          />
-        </form>
+          <form onSubmit={handleSubmit(updateUserProfile)}>
+            <div className="flex gap-3">
+              <Input
+                label={"First name"}
+                name={"firstname"}
+                register={register}
+                error={errors.firstname}
+                defaultValue={user.fullname.firstname}
+              />
+              <Input
+                label={"Last name"}
+                name={"lastname"}
+                register={register}
+                error={errors.lastname}
+                defaultValue={user.fullname.lastname}
+              />
+            </div>
+            <Input
+              label={"Phone number"}
+              type={"number"}
+              name={"phone"}
+              icon={Phone}
+              register={register}
+              error={errors.phone}
+              defaultValue={user.phone}
+            />
+            {responseError && (
+              <p className="mb-4 rounded-xl bg-red-50 px-4 py-2.5 text-center text-sm font-medium text-red-600">
+                {responseError}
+              </p>
+            )}
+            <Button title={"Save changes"} loading={loading} type="submit" size="lg" classes={"mt-2"} />
+          </form>
+        </div>
       </div>
     </div>
   );

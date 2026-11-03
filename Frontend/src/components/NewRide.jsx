@@ -1,12 +1,10 @@
-import {
-  CreditCard,
-  MapPinMinus,
-  MapPinPlus,
-  PhoneCall,
-  SendHorizontal,
-} from "lucide-react";
+import { Banknote, MessageCircle, PhoneCall, Route, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 import Button from "./Button";
+import { Avatar, Divider, RouteTimeline } from "./ui";
 
+// Captain's ride panel. Props are unchanged; showBtn drives the state:
+// "accept" -> incoming request, "otp" -> waiting for rider PIN, otherwise -> trip in progress.
 function NewRide({
   rideData,
   otp,
@@ -26,172 +24,116 @@ function NewRide({
     showPreviousPanel(true);
   };
 
+  const rider = rideData?.user;
+  const distanceKm = (Number(rideData?.distance || 0) / 1000).toFixed(1);
+
   return (
-    <>
-      <div
-        className={`${
-          showPanel ? "bottom-0" : "-bottom-[60%]"
-        } transition-all duration-500 absolute bg-white w-full rounded-t-xl p-4 pt-0`}
-      >
-        {/* <div
-          onClick={() => {
-            setShowPanel(false);
-            showPreviousPanel(true);
-          }}
-          className="flex justify-center  py-2 pb-4 cursor-pointer"
-        >
-          <ChevronDown strokeWidth={2.5} className="text-zinc-300" />
-        </div> */}
-        <div>
-          <div className="flex justify-between items-center pb-4 pt-2">
-            <div className="flex items-center gap-3">
-              <div className="my-2 select-none rounded-full w-10 h-10 bg-green-500 mx-auto flex items-center justify-center">
-                <h1 className="text-lg text-white">
-                  {rideData?.user?.fullname?.firstname[0]}
-                  {rideData?.user?.fullname?.lastname[0]}
-                </h1>
-              </div>
+    <div
+      className={`sheet max-h-[88%] overflow-y-auto transition-transform duration-500 ease-out ${
+        showPanel ? "translate-y-0" : "pointer-events-none translate-y-[110%]"
+      }`}
+    >
+      <div className="sheet-handle" />
 
-              <div>
-                <h1 className="text-lg font-semibold leading-6">
-                  {rideData?.user?.fullname?.firstname}{" "}
-                  {rideData?.user?.fullname?.lastname}
-                </h1>
-                <p className="text-xs text-gray-500 ">
-                  {rideData?.user?.phone || rideData?.user?.email}
-                </p>
-              </div>
-            </div>
+      {/* State label */}
+      <div className="mb-4 flex items-center justify-between">
+        {showBtn == "accept" ? (
+          <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-500 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-500" />
+            </span>
+            New ride request
+          </span>
+        ) : showBtn == "otp" ? (
+          <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700">Heading to pickup</span>
+        ) : (
+          <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">Trip in progress</span>
+        )}
+        <span className="inline-flex items-center gap-1 text-xs font-semibold text-ink-500">
+          <Route size={14} /> {distanceKm} km
+        </span>
+      </div>
 
-            <div className="text-right">
-              <h1 className="font-semibold text-lg">₹ {rideData?.fare}</h1>
-              <p className="text-xs text-gray-500 ">
-                {(Number(rideData?.distance?.toFixed(2)) / 1000)?.toFixed(1)} Km
-              </p>
-            </div>
+      {/* Rider + fare */}
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <Avatar firstname={rider?.fullname?.firstname} lastname={rider?.fullname?.lastname} tone="blue" />
+          <div className="min-w-0">
+            <p className="truncate text-[15px] font-bold tracking-tight">
+              {rider?.fullname?.firstname} {rider?.fullname?.lastname}
+            </p>
+            <p className="truncate text-xs text-ink-500">{rider?.phone || rider?.email}</p>
           </div>
-
-          {/* Message and call */}
-          {showBtn != "accept" && (
-            <div className="flex gap-2 mb-2">
-              <Button
-                type={"link"}
-                path={`/captain/chat/${rideData?._id}`}
-                title={"Send a message..."}
-                icon={<SendHorizontal strokeWidth={1.5} size={18} />}
-                classes={"bg-zinc-100 font-medium text-sm text-zinc-950"}
-              />
-              <div className="flex items-center justify-center w-14 rounded-md bg-zinc-100">
-                <a href={"tel:" + rideData?.user?.phone}>
-                  <PhoneCall size={18} strokeWidth={2} color="black" />
-                </a>
-              </div>
-            </div>
-          )}
-
-          <div>
-            {/* Pickup Location */}
-            <div className="flex items-center gap-3 border-t-2 py-2 px-2">
-              <MapPinMinus size={18} />
-              <div>
-                <h1 className="text-lg font-semibold leading-5">
-                  {rideData.pickup.split(", ")[0]}
-                </h1>
-                <div className="flex">
-                  <p className="text-xs text-gray-800 inline">
-                    {rideData.pickup.split(", ").map((location, index) => {
-                      if (index > 0) {
-                        return (
-                          <span key={index}>
-                            {location}
-                            {index < rideData.pickup.split(", ").length - 1 &&
-                              ", "}
-                          </span>
-                        );
-                      }
-                      return null;
-                    })}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Destination Location */}
-            <div className="flex items-center gap-3 border-t-2 py-2 px-2">
-              <MapPinPlus size={18} />
-              <div>
-                <h1 className="text-lg font-semibold leading-5">
-                  {rideData.destination.split(", ")[0]}
-                </h1>
-                <div className="flex">
-                  <p className="text-xs text-gray-800 inline">
-                    {rideData.destination.split(", ").map((location, index) => {
-                      if (index > 0) {
-                        return (
-                          <span key={index}>
-                            {location}
-                            {index <
-                              rideData.destination.split(", ").length - 1 &&
-                              ", "}
-                          </span>
-                        );
-                      }
-                      return null;
-                    })}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Fare */}
-            <div className="flex items-center gap-3 border-t-2 py-2 px-2">
-              <CreditCard size={18} />
-              <div>
-                <h1 className="text-lg font-semibold leading-6">
-                  ₹ {rideData.fare}
-                </h1>
-                <p className="text-xs text-gray-800 ">Cash</p>
-              </div>
-            </div>
-          </div>
-
-          {showBtn == "accept" ? (
-            <div className="flex gap-2">
-              <Button
-                title={"Ignore"}
-                loading={loading}
-                fun={ignoreRide}
-                classes={"bg-white text-zinc-900 border-2 border-black"}
-              />
-              <Button title={"Accept"} fun={acceptRide} loading={loading} />
-            </div>
-          ) : showBtn == "otp" ? (
-            <>
-              <input
-                type="number"
-                minLength={6}
-                maxLength={6}
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                placeholder={"Enter OTP"}
-                className="w-full bg-zinc-100 px-4 py-3 rounded-lg outline-none text-sm mb-2"
-              />
-              {error && (
-                <p className="text-red-500 text-xs mb-2 text-center">{error}</p>
-              )}
-              <Button title={"Verify OTP"} loading={loading} fun={verifyOTP} />{" "}
-            </>
-          ) : (
-            <Button
-              title={"End Ride"}
-              fun={endRide}
-              loading={loading}
-              classes={"bg-green-600 "}
-            />
-          )}
+        </div>
+        <div className="text-right">
+          <p className="eyebrow">Fare</p>
+          <p className="text-2xl font-extrabold tracking-tight">₹{rideData?.fare}</p>
         </div>
       </div>
-    </>
+
+      {/* Message and call */}
+      {showBtn != "accept" && (
+        <div className="mb-4 flex gap-2">
+          <Link
+            to={`/captain/chat/${rideData?._id}`}
+            className="flex h-11 flex-1 items-center gap-2 rounded-xl bg-ink-100 px-4 text-sm font-medium text-ink-500 transition hover:bg-ink-200"
+          >
+            <MessageCircle size={17} className="text-ink-900" /> Message rider…
+          </Link>
+          <a
+            href={"tel:" + rider?.phone}
+            aria-label="Call rider"
+            className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-500 text-white shadow-brand transition hover:bg-brand-600"
+          >
+            <PhoneCall size={17} />
+          </a>
+        </div>
+      )}
+
+      {/* Route + payment */}
+      <div className="card mb-4 p-4">
+        <RouteTimeline pickup={rideData?.pickup} destination={rideData?.destination} />
+        <Divider className="my-3" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-semibold text-ink-700">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+              <Banknote size={17} />
+            </span>
+            Collect cash
+          </div>
+          <p className="text-base font-extrabold tracking-tight">₹{rideData?.fare}</p>
+        </div>
+      </div>
+
+      {/* Actions */}
+      {showBtn == "accept" ? (
+        <div className="flex gap-2">
+          <Button title={"Ignore"} loading={loading} fun={ignoreRide} variant="outline" />
+          <Button title={"Accept ride"} fun={acceptRide} loading={loading} variant="brand" />
+        </div>
+      ) : showBtn == "otp" ? (
+        <>
+          <label className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-ink-700">
+            <ShieldCheck size={15} className="text-brand-600" /> Enter the rider&apos;s 6-digit PIN
+          </label>
+          <input
+            type="number"
+            inputMode="numeric"
+            minLength={6}
+            maxLength={6}
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            placeholder={"• • • • • •"}
+            className="field mb-2 h-14 text-center text-2xl font-extrabold tracking-[0.5em] placeholder:tracking-[0.3em]"
+          />
+          {error && <p className="mb-2 text-center text-xs font-medium text-red-500">{error}</p>}
+          <Button title={"Verify & start trip"} loading={loading} fun={verifyOTP} variant="primary" size="lg" />
+        </>
+      ) : (
+        <Button title={"Complete trip"} fun={endRide} loading={loading} variant="brand" size="lg" />
+      )}
+    </div>
   );
 }
 

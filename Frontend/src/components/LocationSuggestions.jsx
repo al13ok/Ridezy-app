@@ -1,29 +1,13 @@
 import { MapPin } from "lucide-react";
 import Console from "../utils/console";
 
-const locationSuggestions = [
-  { name: "Central Park", location: "New York, NY, USA" },
-  { name: "Eiffel Tower", location: "Paris, France" },
-  { name: "Marina Bay Sands", location: "Singapore" },
-  { name: "Burj Khalifa", location: "Dubai, UAE" },
-  { name: "Sydney Opera House", location: "Sydney, Australia" },
-  { name: "Golden Gate Bridge", location: "San Francisco, CA, USA" },
-  { name: "Taj Mahal", location: "Agra, India" },
-  { name: "Great Wall", location: "Beijing, China" },
-  { name: "Niagara Falls", location: "Ontario, Canada" },
-  { name: "Colosseum", location: "Rome, Italy" },
-];
-function LocationSuggestions({
-  suggestions = [],
-  setSuggestions,
-  setPickupLocation,
-  setDestinationLocation,
-  input,
-}) {
+function LocationSuggestions({ suggestions = [], setSuggestions, setPickupLocation, setDestinationLocation, input }) {
   return (
-    <div>
+    <div className="mt-1">
+      <p className="eyebrow mb-1 px-1">{input == "pickup" ? "Pickup suggestions" : "Drop-off suggestions"}</p>
       {suggestions.map((suggestion, index) => (
-        <div
+        <button
+          type="button"
           onClick={() => {
             Console.log(suggestion);
             if (input == "pickup") {
@@ -36,15 +20,13 @@ function LocationSuggestions({
             }
           }}
           key={index}
-          className="cursor-pointer flex items-center gap-2 border-b-2 last:border-b-0 py-3 border-gray-200"
+          className="flex w-full items-center gap-3 rounded-xl px-1 py-2.5 text-left transition hover:bg-ink-50"
         >
-          <div className="bg-gray-100 p-2 rounded-full">
-            <MapPin size={20} />
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold">{suggestion}</h2>
-          </div>
-        </div>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink-100 text-ink-600">
+            <MapPin size={17} />
+          </span>
+          <span className="truncate text-sm font-semibold text-ink-900">{suggestion}</span>
+        </button>
       ))}
     </div>
   );
