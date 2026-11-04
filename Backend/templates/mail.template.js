@@ -1,79 +1,48 @@
+// Same colours as the app (brand green + ink greys) so the mails don't look like
+// they came from a different product. Inline styles only, mail clients strip <style>.
+const logoUrl = `${process.env.CLIENT_URL || ""}/logo-Ridezy.png`;
+
 let emailTemplate = `
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{title}}</title>
   </head>
-  <body
-    style="background-color: #ffffff; color: #333; margin: 0px; padding: 0px"
-  >
-    <div
-      style="
-        max-width: 600px;
-        margin: auto;
-        background: #ffffff;
-        padding: 30px;
-        border-radius: 8px;
-      "
-    >
-      <div style="display: flex; margin-bottom: 30px; gap: 20px">
-        <img
-          src="https://quick-ride-asif.vercel.app/logo-Ridezy.png"
-          alt="Ridezy"
-          style="margin: 0px auto; height: 60px"
-        />
+  <body style="margin: 0; padding: 0; background-color: #f2f4f7; color: #344054; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+    <div style="max-width: 560px; margin: 0 auto; padding: 32px 16px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="${logoUrl}" alt="Ridezy" style="height: 44px;" />
       </div>
 
-      <h2 style="margin-top: 0">{{title}}</h2>
-      <p>Hi {{name}},</p>
+      <div style="background: #ffffff; border-radius: 20px; padding: 32px 28px; box-shadow: 0 4px 16px rgba(16, 24, 40, 0.06);">
+        <h2 style="margin: 0 0 16px; font-size: 22px; color: #0b1220;">{{title}}</h2>
+        <p style="margin: 0 0 12px;">Hi {{name}},</p>
+        <p style="margin: 0 0 24px; line-height: 1.6;">{{message}}</p>
 
-      <p style="text-wrap: pretty;">{{message}}</p>
-      <div style="display: flex; width: 100%">
-        <a
-          href="{{cta_link}}"
-          target="_blank"
-          style="
-            display: inline-block;
-            text-align: center;
-            margin: 10px auto;
-            padding: 18px 36px;
-            background-color: #51d56b;
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 6px;
-            color: #ffffff;
-          "
-        >
-          {{cta_text}}
-        </a>
+        <div style="text-align: center; margin: 28px 0;">
+          <a
+            href="{{cta_link}}"
+            target="_blank"
+            style="display: inline-block; padding: 14px 32px; background-color: #12b76a; color: #ffffff; font-size: 16px; font-weight: bold; text-decoration: none; border-radius: 14px;"
+          >{{cta_text}}</a>
+        </div>
+
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #667085;">{{note}}</p>
       </div>
-      <p style="text-wrap: pretty;">{{note}}</p>
 
-      <div
-        style="
-          font-size: 13px;
-          color: #777;
-          margin-top: 30px;
-          text-align: center;
-        "
-      >
-        &mdash; The Ridezy Team
+      <div style="margin-top: 24px; text-align: center; font-size: 13px; color: #98a2b3;">
+        &mdash; Team Ridezy
         <br />
-        <small>
-          If you have any questions or need help, feel free to reach out to our
-          team at
-          <a href="mailto:${process.env.MAIL_USER}" style="color: #4caf50"
-            >${process.env.MAIL_USER}</a
-          >
-        </small>
+        Questions? Write to us at
+        <a href="mailto:${process.env.MAIL_USER}" style="color: #039855;">${process.env.MAIL_USER}</a>
       </div>
     </div>
   </body>
 </html>
-
 `;
+
 const fillTemplate = (data, template = emailTemplate) => {
   return template
     .replace(/{{title}}/g, data.title || "")
