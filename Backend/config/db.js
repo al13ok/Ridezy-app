@@ -13,13 +13,16 @@ mongoose
     console.log("Connected to Mongo DB", MONGO_DB[environment].type);
     try {
       const { seedDemoCaptains } = require("./demoCaptains");
+      const { seedDemoUsers } = require("./demoUsers");
       await seedDemoCaptains();
+      await seedDemoUsers();
     } catch (err) {
-      console.error("Error calling seedDemoCaptains:", err);
+      console.error("Error seeding demo accounts:", err);
     }
   })
-  .catch(() => {
-    console.log("Failed to connect to MongoDB");
+  .catch((err) => {
+    // Log the real reason (wrong password, IP not whitelisted, cluster paused...)
+    console.log("Failed to connect to MongoDB:", err.message);
   });
 
 module.exports = mongoose.connection;

@@ -7,6 +7,7 @@ import { useCaptain } from "../contexts/CaptainContext";
 import { Hash, Mail, Palette, Phone, Users } from "lucide-react";
 import { Avatar, PageHeader, VehicleTypePicker } from "../components/ui";
 import Console from "../utils/console";
+import { getErrorMessage } from "../utils/errorMessage";
 
 function CaptainEditProfile() {
   const token = localStorage.getItem("token");
@@ -52,7 +53,7 @@ function CaptainEditProfile() {
       Console.log(response);
       navigation("/captain/home");
     } catch (error) {
-      setResponseError(error.response.data[0].msg);
+      setResponseError(getErrorMessage(error));
       Console.log(error.response);
       Console.log(error);
     } finally {

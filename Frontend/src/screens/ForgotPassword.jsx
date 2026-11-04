@@ -3,6 +3,7 @@ import { Button, Input } from "../components";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import Console from "../utils/console";
+import { getErrorMessage } from "../utils/errorMessage";
 import axios from "axios";
 import useCooldownTimer from "../hooks/useCooldownTimer";
 import { KeyRound, Mail } from "lucide-react";
@@ -42,8 +43,8 @@ function ForgotPassword() {
         );
         startCooldown();
       } catch (error) {
-        showAlert("Some error occured", error.response.data.message || error.response.data[0]?.msg, "failure");
-        Console.log(error.response.data.message);
+        showAlert("Some error occured", getErrorMessage(error), "failure");
+        Console.log(error);
       } finally {
         setLoading(false);
       }
