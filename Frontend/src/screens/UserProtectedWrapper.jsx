@@ -5,8 +5,7 @@ import { useUser } from "../contexts/UserContext";
 import VerifyEmail from "../components/VerifyEmail";
 import Loading from "./Loading";
 
-// Email verification is optional by default so new users can start riding immediately.
-// Set VITE_REQUIRE_EMAIL_VERIFICATION=true to force the "Verify your email" screen again.
+// verify email screen only shows if VITE_REQUIRE_EMAIL_VERIFICATION=true
 const REQUIRE_EMAIL_VERIFICATION = import.meta.env.VITE_REQUIRE_EMAIL_VERIFICATION === "true";
 
 function UserProtectedWrapper({ children }) {

@@ -1,6 +1,5 @@
-// Allowed frontend origins for CORS (REST + Socket.IO).
-// Set CORS_ORIGINS="https://your-frontend.vercel.app,http://localhost:5173" in .env.
-// If it is not set, falls back to "*" so existing deployments keep working.
+// CORS_ORIGINS=https://your-app.vercel.app,http://localhost:5173
+// falls back to * if not set
 function getAllowedOrigins() {
   const origins = (process.env.CORS_ORIGINS || "")
     .split(",")

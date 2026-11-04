@@ -67,7 +67,6 @@ function CaptainSignup() {
       badge="Captain"
       footer={<RoleSwitch to="/signup" title="Just want to ride?" subtitle="Create a rider account" captain={false} />}
     >
-      {/* Stepper */}
       <div className="mb-5 flex items-center gap-2">
         {[1, 2].map((s) => (
           <div key={s} className={`h-1.5 flex-1 rounded-full transition-colors ${s <= step ? "bg-brand-500" : "bg-ink-200"}`} />

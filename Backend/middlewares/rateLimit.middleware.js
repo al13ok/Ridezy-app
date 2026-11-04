@@ -1,11 +1,9 @@
-// Small in-memory rate limiter (no extra dependency) to slow down
-// brute-force password guessing and email spamming.
-// Key = IP + route + email, so users behind the same network don't block each other.
-// Note: in-memory means per-server-instance; with multiple instances use Redis.
+// simple in-memory rate limiter for login / mail routes
+// key is ip + route + email. per instance only, use redis if we scale
 function rateLimit({ windowMs, max, message }) {
   const hits = new Map(); // key -> { count, resetAt }
 
-  // Periodically drop expired entries so the map doesn't grow forever.
+  // cleanup old entries
   setInterval(() => {
     const now = Date.now();
     for (const [key, entry] of hits) {
@@ -27,7 +25,7 @@ function rateLimit({ windowMs, max, message }) {
     entry.count += 1;
     if (entry.count > max) {
       res.set("Retry-After", Math.ceil((entry.resetAt - now) / 1000));
-      return res.status(429).json({ message }); // 429 Too Many Requests
+      return res.status(429).json({ message });
     }
     next();
   };

@@ -47,8 +47,7 @@ module.exports.verifyEmail = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Invalid verification link", error: "Token is required" });
   }
 
-  // jwt.verify THROWS on expired/invalid tokens – catch it and return a clean 400
-  // instead of an unhandled 500.
+  // jwt.verify throws on bad/expired token
   let decodedTokenData;
   try {
     decodedTokenData = jwt.verify(token, process.env.JWT_SECRET);
@@ -87,7 +86,6 @@ module.exports.loginUser = asyncHandler(async (req, res) => {
 
   const user = await userModel.findOne({ email }).select("+password");
   if (!user) {
-    // `return` is required – otherwise execution continues and user.comparePassword crashes on null
     return res.status(401).json({ message: "Invalid email or password" });
   }
 

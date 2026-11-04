@@ -19,9 +19,7 @@ module.exports.chatDetails = async(req, res) => {
             return res.status(404).json({ message: "Ride not found" });
         }
 
-        // Server-side authorization: only the rider or the captain of THIS ride may read
-        // its chat (it contains names and phone numbers). Earlier this check was done only
-        // in the React code, after the data was already sent to the browser.
+        // only the rider or captain of this ride can read the chat
         const isRideUser = ride.user && String(ride.user._id) === String(req.authId);
         const isRideCaptain = ride.captain && String(ride.captain._id) === String(req.authId);
         if (!isRideUser && !isRideCaptain) {
@@ -260,13 +258,12 @@ module.exports.confirmRide = async(req, res) => {
         // TODO: Remove ride from other captains
         // Implement logic here, maybe emit an event or update captain listings
 
-        // The rider gets the OTP (above, via socket) to share in person. The captain
-        // must NOT receive it in this response, otherwise the OTP check is pointless.
+        // don't send the otp back to the captain
         const rideForCaptain = ride.toObject();
         delete rideForCaptain.otp;
         return res.status(200).json(rideForCaptain);
     } catch (err) {
-        // 409 Conflict when another captain won the race; 500 for unexpected errors
+        // 409 if someone else accepted first
         return res.status(err.statusCode || 500).json({ message: err.message });
     }
 };
@@ -330,7 +327,7 @@ module.exports.cancelRide = async(req, res) => {
     const { rideId } = req.query;
 
     try {
-        // Only the rider who booked the ride can cancel it, and only before it starts.
+        // only the rider can cancel, and only before the ride starts
         const ride = await rideModel.findOneAndUpdate(
             { _id: rideId, user: req.user._id, status: { $in: ["pending", "accepted"] } },
             { status: "cancelled" },

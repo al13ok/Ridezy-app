@@ -21,7 +21,6 @@ mongoose
     }
   })
   .catch((err) => {
-    // Log the real reason (wrong password, IP not whitelisted, cluster paused...)
     console.log("Failed to connect to MongoDB:", err.message);
   });
 

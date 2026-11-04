@@ -90,7 +90,7 @@ function CaptainHomeScreen() {
         );
         setLoading(false);
         setShowBtn("otp");
-        // Now that we are the assigned captain, we're allowed into the ride's chat room.
+        // join chat room now that this captain owns the ride
         socket.emit("join-room", { rideId: newRide._id, token });
         setMapLocation(
           `https://www.google.com/maps?q=${riderLocation.ltd},${riderLocation.lng} to ${newRide.pickup}&output=embed`
@@ -178,7 +178,6 @@ function CaptainHomeScreen() {
           setMapLocation(
             `https://www.google.com/maps?q=${position.coords.latitude},${position.coords.longitude}&output=embed`
           );
-          // Captain identity comes from the socket's verified "join", not from the payload.
           socket.emit("update-location-captain", {
             location: {
               ltd: position.coords.latitude,
@@ -243,9 +242,7 @@ function CaptainHomeScreen() {
   }, [messages]);
 
   useEffect(() => {
-    // Server only lets the ride's assigned captain into the room, so this succeeds
-    // for an accepted ride (e.g. after a page refresh). Right after accepting,
-    // acceptRide() joins the room again.
+    // rejoin the ride room after a refresh
     if (newRide._id) {
       socket.emit("join-room", { rideId: newRide._id, token });
     }
@@ -353,7 +350,6 @@ function CaptainHomeScreen() {
       ></iframe>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-white/70 to-transparent" />
 
-      {/* Online indicator + re-center */}
       <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
         <span className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-4 text-xs font-bold text-ink-900 shadow-float">
           <span className="relative flex h-2.5 w-2.5">
@@ -371,7 +367,6 @@ function CaptainHomeScreen() {
         <div className="sheet animate-slide-up">
           <div className="sheet-handle" />
 
-          {/* Captain */}
           <div className="mb-4 flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <Avatar firstname={captain?.fullname?.firstname} lastname={captain?.fullname?.lastname} tone="ink" />
@@ -390,7 +385,7 @@ function CaptainHomeScreen() {
             </span>
           </div>
 
-          {/* Earnings */}
+          {/* earnings */}
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-ink-900 via-ink-800 to-brand-900 p-5 text-white">
             <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-brand-500/20 blur-2xl" />
             <div className="relative flex items-end justify-between">
@@ -420,7 +415,6 @@ function CaptainHomeScreen() {
             </div>
           </div>
 
-          {/* Vehicle */}
           <div className="mt-3 flex items-center justify-between rounded-2xl bg-ink-50 py-2 pl-4 pr-2 ring-1 ring-ink-200/70">
             <div>
               <p className="eyebrow mb-1">Your vehicle</p>

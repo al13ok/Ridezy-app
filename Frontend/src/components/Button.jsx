@@ -17,8 +17,6 @@ const sizes = {
   sm: "h-10 text-sm",
 };
 
-// Same props as before (path, title, icon, type, classes, fun, loading, loadingMessage, disabled)
-// plus `variant` and `size`, so existing call sites keep working.
 function Button({
   path,
   title,

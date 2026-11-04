@@ -1,7 +1,6 @@
 import { ChevronRight, Car, User } from "lucide-react";
 import { Link } from "react-router-dom";
 
-// Card at the bottom of auth screens to switch between Rider and Captain flows.
 function RoleSwitch({ to, title, subtitle, captain = true }) {
   const Icon = captain ? Car : User;
   return (

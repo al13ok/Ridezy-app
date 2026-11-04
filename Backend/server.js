@@ -1,6 +1,5 @@
 require("dotenv").config();
 
-// Never log process.env – it contains secrets (JWT secret, DB URL, mail password).
 console.log("ENV =", process.env.ENVIRONMENT);
 const socket = require("./socket");
 const express = require("express");
@@ -34,7 +33,7 @@ if (process.env.ENVIRONMENT == "production") {
 } else {
     app.use(morgan("dev"));
 }
-// Render/Vercel sit behind a proxy; trust it so req.ip is the real client IP (used by rate limiter).
+// needed on render so req.ip is the real ip
 if (process.env.ENVIRONMENT == "production") {
     app.set("trust proxy", 1);
 }

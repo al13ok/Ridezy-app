@@ -67,7 +67,6 @@ function RideHistory() {
       <PageHeader title="Your rides" subtitle={`${rides.length} trip${rides.length === 1 ? "" : "s"}`} onBack={() => navigation(-1)} />
 
       <div className="px-4 pb-8">
-        {/* Summary */}
         <div className="mb-5 grid grid-cols-2 gap-2">
           <div className="rounded-2xl bg-ink-900 p-4 text-white">
             <p className="text-xs text-white/60">Completed trips</p>

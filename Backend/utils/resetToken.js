@@ -1,15 +1,9 @@
 const jwt = require("jsonwebtoken");
 const blacklistTokenModel = require("../models/blacklistToken.model");
 
-// Verifies a token used on /reset-password for the given account type.
-// Accepted:
-//   - a "password-reset" token from the forgot-password email
-//   - a normal login token (the in-app "Change Password" option uses it)
-// Rejected:
-//   - email-verification tokens (different purpose)
-//   - tokens of the other account type (a user token can't reset a captain)
-//   - blacklisted (logged-out) tokens
-// Returns { payload } on success or { error, expired } on failure.
+// token for /reset-password. accepts the reset mail token or a normal login token
+// (change password from profile). rejects verify-email tokens, the other
+// account type and blacklisted tokens.
 async function verifyResetToken(token, expectedUserType) {
   let payload;
   try {
@@ -32,13 +26,12 @@ async function verifyResetToken(token, expectedUserType) {
   return { payload };
 }
 
-// Make a reset token single-use: once the password is changed, the same link
-// can't be used again. The blacklist TTL (24h) is longer than the token's life.
+// blacklist the token after use so the link can't be reused
 async function consumeResetToken(token) {
   try {
     await blacklistTokenModel.create({ token });
   } catch (err) {
-    // duplicate key = already blacklisted, safe to ignore
+    // already blacklisted
   }
 }
 

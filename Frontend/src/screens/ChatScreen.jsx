@@ -54,7 +54,7 @@ function ChatScreen() {
         captain: response.data.captain.socketId,
       };
       setSocketID(socketIds);
-    } catch (error) {
+    } catch {
       Console.log("No such ride exists.");
     }
   };
@@ -66,7 +66,6 @@ function ChatScreen() {
     }
 
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    // Sender role is taken from the verified token on the server, not from this payload.
     socket.emit("message", { rideId: rideId, msg: message, time });
     setMessages((prev) => [...prev, { msg: message, by: userType, time }]);
 

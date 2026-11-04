@@ -1,8 +1,7 @@
 import { Zap } from "lucide-react";
 import Spinner from "./Spinner";
 
-// "Try instantly" button shown under the login form. Logs into a shared demo
-// account (no signup, no email verification). `onClick` reuses the screen's own login function.
+// one tap login with the demo account (see utils/demo.js)
 function DemoLogin({ label, onClick, loading }) {
   return (
     <div className="mt-4">

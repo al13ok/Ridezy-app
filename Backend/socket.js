@@ -10,9 +10,7 @@ const { getAllowedOrigins } = require("./config/cors");
 
 let io;
 
-// Verify a JWT sent by the client over the socket.
-// Returns { id, userType } or null. Socket events used to trust whatever
-// userId the client sent, so anyone could impersonate another user/captain.
+// returns { id, userType } or null
 async function verifySocketToken(token) {
   if (!token) return null;
   try {
@@ -48,8 +46,7 @@ function initializeSocket(server) {
       });
     }
 
-    // Client registers its socket after login. Identity comes from the verified
-    // token, NOT from the userId in the payload.
+    // id comes from the token, not the payload
     socket.on("join", async ({ token } = {}) => {
       const auth = await verifySocketToken(token);
       if (!auth) {
@@ -71,7 +68,6 @@ function initializeSocket(server) {
     socket.on("update-location-captain", async (data = {}) => {
       const { location } = data;
 
-      // Only an authenticated captain can update ONLY their own location.
       if (socket.data.userType !== "captain") {
         return socket.emit("error", { message: "Unauthorized" });
       }
@@ -91,8 +87,7 @@ function initializeSocket(server) {
       }
     });
 
-    // Join the chat room of a ride. Only the rider or the captain of that ride
-    // is allowed in, so nobody can listen to someone else's chat.
+    // only the rider / captain of the ride can join its room
     socket.on("join-room", async ({ rideId, token } = {}) => {
       const auth = await verifySocketToken(token);
       if (!auth || !rideId) {
@@ -118,7 +113,6 @@ function initializeSocket(server) {
     });
 
     socket.on("message", async ({ rideId, msg, time } = {}) => {
-      // Must have passed the join-room membership check first.
       if (!rideId || !socket.rooms.has(String(rideId))) {
         return socket.emit("error", { message: "Join the ride chat first" });
       }
@@ -126,13 +120,11 @@ function initializeSocket(server) {
         return socket.emit("error", { message: "Invalid message" });
       }
 
-      // Sender role comes from the verified token, not from the client payload.
       const by = socket.data.userType;
       const date = moment().tz("Asia/Kolkata").format("MMM DD");
       socket.to(String(rideId)).emit("receiveMessage", { msg, by, time });
 
       try {
-        // $push is atomic, unlike read -> push -> save.
         await rideModel.updateOne(
           { _id: rideId },
           { $push: { messages: { msg, by, time, date, timestamp: new Date() } } }

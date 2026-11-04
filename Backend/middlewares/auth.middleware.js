@@ -4,8 +4,7 @@ const userModel = require("../models/user.model");
 const captainModel = require("../models/captain.model");
 const rideModel = require("../models/ride.model");
 
-// Accepts a valid token from EITHER a user or a captain.
-// Used for endpoints both roles need (e.g. ride chat). Sets req.authId and req.userType.
+// accepts both user and captain tokens (used for ride chat)
 module.exports.authAny = async (req, res, next) => {
   const token = req.cookies.token || req.headers.token;
   if (!token) {

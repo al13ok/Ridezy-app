@@ -94,8 +94,7 @@ module.exports.forgotPassword = asyncHandler(async (req, res) => {
   if (!user) return res.status(404).json({ message: "User not found. Please check your credentials and try again" });
   if (isDemoAccount(user.email)) return res.status(403).json({ message: DEMO_LOCKED_MESSAGE });
 
-  // `purpose` + correct `userType` so this token can only be used for a password
-  // reset of THIS account type (see utils/resetToken.js).
+  // purpose + userType so this token only works for resetting this account
   const token = jwt.sign(
     { id: user._id, userType, purpose: "password-reset" },
     process.env.JWT_SECRET,
@@ -117,5 +116,3 @@ module.exports.forgotPassword = asyncHandler(async (req, res) => {
 
   res.status(200).json({ message: "Reset password email sent successfully" });
 });
-// (Removed an unused duplicate resetPassword handler – the real ones live in
-// user.controller.js and captain.controller.js.)

@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import Button from "./Button";
 import { Avatar, Divider, RouteTimeline } from "./ui";
 
-// Captain's ride panel. Props are unchanged; showBtn drives the state:
-// "accept" -> incoming request, "otp" -> waiting for rider PIN, otherwise -> trip in progress.
+// captain ride panel. showBtn: "accept" = new request, "otp" = waiting for pin, else ride started
 function NewRide({
   rideData,
   otp,
@@ -35,7 +34,6 @@ function NewRide({
     >
       <div className="sheet-handle" />
 
-      {/* State label */}
       <div className="mb-4 flex items-center justify-between">
         {showBtn == "accept" ? (
           <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">
@@ -55,7 +53,7 @@ function NewRide({
         </span>
       </div>
 
-      {/* Rider + fare */}
+      {/* rider + fare */}
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <Avatar firstname={rider?.fullname?.firstname} lastname={rider?.fullname?.lastname} tone="blue" />
@@ -72,7 +70,6 @@ function NewRide({
         </div>
       </div>
 
-      {/* Message and call */}
       {showBtn != "accept" && (
         <div className="mb-4 flex gap-2">
           <Link
@@ -91,7 +88,7 @@ function NewRide({
         </div>
       )}
 
-      {/* Route + payment */}
+      {/* route */}
       <div className="card mb-4 p-4">
         <RouteTimeline pickup={rideData?.pickup} destination={rideData?.destination} />
         <Divider className="my-3" />
@@ -106,7 +103,6 @@ function NewRide({
         </div>
       </div>
 
-      {/* Actions */}
       {showBtn == "accept" ? (
         <div className="flex gap-2">
           <Button title={"Ignore"} loading={loading} fun={ignoreRide} variant="outline" />

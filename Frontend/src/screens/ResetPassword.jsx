@@ -53,7 +53,7 @@ function ResetPassword() {
       });
       showAlert("Password reset successfully!", response.data.message, "success");
       Console.log(response);
-      // The used token is now invalid on the server – log in again with the new password.
+      // reset link is single use, so go back to login
       localStorage.removeItem("token");
       localStorage.removeItem("userData");
       setTimeout(() => {

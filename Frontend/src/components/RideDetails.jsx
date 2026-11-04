@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import Button from "./Button";
 import { Avatar, Divider, NumberPlate, RouteTimeline, StatusPill, vehicleImage, vehicleMeta } from "./ui";
 
-// Rider's ride panel. Props are unchanged from the original component; only the UI is new.
 function RideDetails({
   pickupLocation,
   destinationLocation,
@@ -35,7 +34,6 @@ function RideDetails({
     >
       <div className="sheet-handle" />
 
-      {/* ---------- Header per state ---------- */}
       {!confirmedRideData && !isSearching && (
         <div className="mb-4 flex items-center gap-3">
           <button
@@ -85,7 +83,7 @@ function RideDetails({
         </div>
       )}
 
-      {/* ---------- Captain card (after a captain accepts) ---------- */}
+      {/* captain card, after ride is accepted */}
       {confirmedRideData?._id && !isCompleted && (
         <div className="mb-4">
           <div className="mb-3 flex items-center justify-between">
@@ -157,7 +155,7 @@ function RideDetails({
         </div>
       )}
 
-      {/* ---------- Pre-booking vehicle summary ---------- */}
+      {/* before booking */}
       {!confirmedRideData && !isSearching && (
         <div className="mb-4 flex items-center gap-3 rounded-2xl bg-ink-50 p-3">
           <div className="flex h-14 w-16 items-center justify-center rounded-xl bg-white">
@@ -171,7 +169,7 @@ function RideDetails({
         </div>
       )}
 
-      {/* ---------- Route + payment ---------- */}
+      {/* route */}
       <div className="card mb-4 p-4">
         <RouteTimeline pickup={pickupLocation} destination={destinationLocation} />
         <Divider className="my-3" />
@@ -186,7 +184,6 @@ function RideDetails({
         </div>
       </div>
 
-      {/* ---------- Actions ---------- */}
       <div className="space-y-2">
         {!confirmedRideData && !isSearching && (
           <Button title={"Confirm ride"} fun={createRide} loading={loading} variant="brand" size="lg" />
@@ -196,7 +193,7 @@ function RideDetails({
 
         {status === "ongoing" && <Button title={"End ride"} fun={endRide} loading={loading} variant="brand" size="lg" />}
 
-        {/* Backend only allows cancelling before the trip starts */}
+        {/* can't cancel once the ride has started */}
         {status === "accepted" && (
           <Button title={"Cancel ride"} fun={cancelRide} loading={loading} variant="danger" />
         )}

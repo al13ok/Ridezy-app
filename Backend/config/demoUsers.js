@@ -1,8 +1,6 @@
 const userModel = require("../models/user.model");
 
-// Public demo rider so anyone (e.g. an interviewer) can try Ridezy in one click
-// without signing up. Its password is published in the frontend on purpose,
-// so password reset / profile edits are blocked for demo accounts (see utils/demo.js).
+// demo rider for the "try instantly" button, password is public on purpose
 const demoUsers = [
   {
     fullname: { firstname: "Demo", lastname: "Rider" },

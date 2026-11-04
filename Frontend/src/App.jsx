@@ -24,7 +24,7 @@ import { useEffect, useContext } from "react";
 import { ChevronLeft, MessageCircle, Radio, ShieldCheck, Smartphone, Trash2 } from "lucide-react";
 import { Logo } from "./components/ui";
 
-// Desktop-only brand panel shown next to the phone-sized app.
+// side panel, only visible on desktop
 function ShowcasePanel() {
   const points = [
     { icon: Radio, title: "Real-time matching", text: "Nearby captains get your request instantly over WebSockets." },
@@ -71,7 +71,7 @@ function App() {
   return (
     <div className="w-full h-dvh flex items-center bg-ink-100">
       <div className="relative w-full sm:min-w-[400px] sm:w-[400px] h-full bg-white overflow-hidden sm:shadow-float">
-        {/* Force Reset Button to clear data */}
+        {/* reset button, clears localStorage if the app gets stuck */}
         <div className="absolute top-36 -right-11 opacity-30 hover:opacity-100 z-50 flex items-center gap-1 rounded-l-2xl bg-white p-1 shadow-float hover:-translate-x-11 transition-all duration-300">
           <ChevronLeft size={18} className="text-ink-400" />
           <button aria-label="Reset app data" title="Reset app data" className="flex justify-center items-center w-10 h-10 rounded-xl bg-red-50 text-red-600" onClick={() => {

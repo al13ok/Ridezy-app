@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-// Same props as before; `icon` is optional. Password fields get a show/hide toggle.
 function Input({ label, type, name, placeholder, defaultValue, register, error, options, disabled, icon: Icon }) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";

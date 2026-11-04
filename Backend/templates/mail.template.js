@@ -1,5 +1,4 @@
-// Same colours as the app (brand green + ink greys) so the mails don't look like
-// they came from a different product. Inline styles only, mail clients strip <style>.
+// inline styles only, most mail clients drop <style>
 const logoUrl = `${process.env.CLIENT_URL || ""}/logo-Ridezy.png`;
 
 let emailTemplate = `

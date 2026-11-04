@@ -120,9 +120,7 @@ module.exports.updateCaptainProfile = asyncHandler(async (req, res) => {
 
   const { captainData = {} } = req.body;
 
-  // Whitelist editable fields. Passing req.body straight into the update
-  // (mass assignment) let a captain set email, password (unhashed!),
-  // emailVerified, status or rides themselves.
+  // only these fields can be edited from the profile page
   const update = {};
   if (captainData.fullname) {
     update["fullname.firstname"] = captainData.fullname.firstname;

@@ -25,7 +25,6 @@ function GetStarted() {
   }, []);
   return (
     <div className="relative flex h-full w-full flex-col justify-between overflow-hidden bg-brand-100">
-      {/* Illustration */}
       <div
         className="absolute inset-0 bg-cover bg-top"
         style={{ backgroundImage: `url(${background})` }}

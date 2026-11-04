@@ -175,7 +175,7 @@ setLocationSuggestion(filteredLocations);
 
   const cancelRide = async () => {
     Console.log("CANCEL RIDE CALLED");
-    // Stop the auto-cancel timer so it can't fire later against a NEW ride.
+    // clear auto cancel timer
     clearTimeout(rideTimeout.current);
     const rideDetails = JSON.parse(localStorage.getItem("rideDetails"));
     try {
@@ -183,8 +183,6 @@ setLocationSuggestion(filteredLocations);
       await axios.get(
         `${import.meta.env.VITE_SERVER_URL}/ride/cancel?rideId=${rideDetails._id || rideDetails.confirmedRideData._id
         }`,
-        // axios.get(url, config) takes only 2 args – a GET has no body. Earlier a body
-        // object was passed 2nd, so these headers (3rd arg) were silently ignored.
         {
           headers: {
             token: token,
@@ -316,7 +314,6 @@ setLocationSuggestion(filteredLocations);
   // Socket Events
   useEffect(() => {
     if (user._id) {
-      // Server identifies us from the verified JWT, not from a userId we claim.
       socket.emit("join", { token });
     }
 
@@ -453,15 +450,14 @@ setLocationSuggestion(filteredLocations);
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"
       ></iframe>
-      {/* Soft fade so the floating controls stay readable over the map */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-white/70 to-transparent" />
 
-      {/* Re-center on my location */}
+      {/* recenter */}
       <IconButton onClick={updateLocation} label="Use my location" className="absolute right-4 top-4 z-10">
         <LocateFixed size={19} />
       </IconButton>
 
-      {/* Find a trip sheet */}
+      {/* pickup / drop sheet */}
       {showFindTripPanel && (
         <div className="sheet max-h-[85%] overflow-y-auto animate-slide-up">
           <div className="sheet-handle" />

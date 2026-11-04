@@ -1,8 +1,6 @@
-// Shared presentational building blocks for the Ridezy UI.
-// No API / socket logic lives here – only markup and styling.
 import { ArrowLeft, Bike, Car, Users } from "lucide-react";
 
-/* ---------- Brand ---------- */
+// brand
 
 export function LogoMark({ className = "w-9 h-9" }) {
   return (
@@ -30,7 +28,7 @@ export function Logo({ className = "", light = false, size = "md" }) {
   );
 }
 
-/* ---------- People ---------- */
+// people
 
 const avatarTones = {
   brand: "from-brand-400 to-brand-600",
@@ -56,7 +54,7 @@ export function Avatar({ firstname = "", lastname = "", size = "md", tone = "bra
   );
 }
 
-/* ---------- Layout ---------- */
+// layout
 
 export function IconButton({ onClick, children, label, className = "" }) {
   return (
@@ -93,7 +91,7 @@ export function PageHeader({ title, subtitle, onBack, right }) {
   );
 }
 
-// Layout for login / signup screens: brand bar, content, optional footer.
+// login / signup wrapper
 export function AuthLayout({ children, footer, badge }) {
   return (
     <div className="flex h-dvh w-full flex-col overflow-y-auto bg-white">
@@ -111,7 +109,7 @@ export function AuthLayout({ children, footer, badge }) {
   );
 }
 
-/* ---------- Ride bits ---------- */
+// ride
 
 const statusStyles = {
   pending: { label: "Searching", cls: "bg-amber-50 text-amber-700 ring-amber-200" },
@@ -131,7 +129,7 @@ export function StatusPill({ status }) {
   );
 }
 
-// Splits "Place, City, State" into a bold title and a muted subtitle.
+// "Place, City, State" -> title + subtitle
 function splitAddress(address = "") {
   const parts = String(address || "").split(", ");
   return { title: parts[0] || "", rest: parts.slice(1).join(", ") };
@@ -178,7 +176,7 @@ export function vehicleImage(type) {
   return (vehicleMeta[type] || vehicleMeta.car).image;
 }
 
-// Indian-style number plate
+// number plate
 export function NumberPlate({ number }) {
   return (
     <span className="inline-flex items-center rounded-md border-2 border-ink-900 bg-amber-300 px-2 py-0.5 font-mono text-[13px] font-bold uppercase tracking-wider text-ink-900">
@@ -187,7 +185,7 @@ export function NumberPlate({ number }) {
   );
 }
 
-// Radio cards for picking vehicle type; registers the same "type" field as the old <select>.
+// vehicle type radio cards
 export function VehicleTypePicker({ register, name = "type", defaultValue = "car", error }) {
   return (
     <div className="mb-4">

@@ -55,7 +55,6 @@ function Sidebar() {
 
   return (
     <>
-      {/* Toggle */}
       <button
         type="button"
         aria-label={showSidebar ? "Close menu" : "Open menu"}
@@ -67,7 +66,6 @@ function Sidebar() {
         {showSidebar ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      {/* Backdrop */}
       <div
         onClick={() => setShowSidebar(false)}
         className={`absolute inset-0 z-20 bg-ink-900/40 backdrop-blur-[2px] transition-opacity duration-300 ${
@@ -75,7 +73,6 @@ function Sidebar() {
         }`}
       />
 
-      {/* Drawer */}
       <aside
         className={`absolute bottom-0 left-0 top-0 z-20 flex w-[86%] flex-col justify-between bg-white px-5 pb-6 pt-20 transition-transform duration-300 ease-out ${
           showSidebar ? "translate-x-0 shadow-float" : "-translate-x-full"
